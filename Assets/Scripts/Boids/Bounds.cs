@@ -9,9 +9,6 @@ public class Bounds : MonoBehaviour
     [SerializeField] private float _margin = 1f;
     [SerializeField] private bool _drawGizmos = true;
 
-    public float Width => _width;
-    public float Height => _height;
-
     private void Awake()
     {
         if (Instance == null) Instance = this;

@@ -10,7 +10,6 @@ public class SensorAgent : MonoBehaviour
 
     public float ViewRadius => _viewRadius;
     public float ViewAngle => _viewAngle;
-    public LayerMask WallMask => _wallMask;
 
     public void Configure(float viewRadius, float viewAngle, LayerMask wallMask)
     {
@@ -22,11 +21,6 @@ public class SensorAgent : MonoBehaviour
     public bool CanSee(Transform target)
     {
         return target != null && target.gameObject.activeInHierarchy && InFieldOfView(target.position);
-    }
-
-    public bool CanSee(Vector3 targetPosition)
-    {
-        return InFieldOfView(targetPosition);
     }
 
     public bool HasLineOfSight(Vector3 targetPosition)

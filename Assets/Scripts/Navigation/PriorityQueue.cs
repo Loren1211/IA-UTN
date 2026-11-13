@@ -18,7 +18,6 @@ public class PriorityQueue<T>
     private readonly List<Node> _heap = new();
 
     public int Count => _heap.Count;
-    public bool IsEmpty => _heap.Count == 0;
 
     public void Enqueue(T item, float priority)
     {
@@ -43,19 +42,6 @@ public class PriorityQueue<T>
 
         return root;
     }
-
-    public T Peek()
-    {
-        if (_heap.Count == 0)
-        {
-            Debug.LogError("Priority queue is empty.");
-            return default;
-        }
-
-        return _heap[0].Item;
-    }
-
-    public void Clear() => _heap.Clear();
 
     private void HeapifyUp(int index)
     {

@@ -7,8 +7,6 @@ public class FiniteStateMachine<T>
     private State<T> _currentState;
 
     public T CurrentState { get; private set; }
-    public T PreviousState { get; private set; }
-    public bool HasCurrentState => _currentState != null;
     public string CurrentStateName => _currentState != null ? _currentState.Name : "Sin estado";
 
     public void AddState(T id, State<T> state)
@@ -32,7 +30,6 @@ public class FiniteStateMachine<T>
         }
 
         _currentState?.Exit();
-        PreviousState = CurrentState;
         CurrentState = id;
         _currentState = nextState;
         _currentState.Enter();
@@ -41,11 +38,6 @@ public class FiniteStateMachine<T>
     public void Update()
     {
         _currentState?.Update();
-    }
-
-    public State<T> GetState(T id)
-    {
-        return _allStates.TryGetValue(id, out State<T> state) ? state : null;
     }
 }
 

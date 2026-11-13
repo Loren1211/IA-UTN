@@ -27,7 +27,6 @@ public class Agent : MonoBehaviour
     private Vector3 _velocity;
 
     public Vector3 Velocity => _velocity;
-    public float MaxSpeed => _maxSpeed;
 
     private void Awake()
     {

@@ -20,10 +20,6 @@ public class Node : MonoBehaviour
         Coordinates = coordinates;
         Cost = 1;
     }
-
-    public void SetBlocked(bool blocked) => Blocked = blocked;
-
-    public void SetCost(int cost) => Cost = Mathf.Clamp(cost, 1, 5);
 }
 
 public struct Coordinates

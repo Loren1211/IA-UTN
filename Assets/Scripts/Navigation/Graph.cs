@@ -25,6 +25,7 @@ public class Graph : MonoBehaviour
     private readonly List<Node> _allNodes = new();
     private readonly Dictionary<Node, List<Node>> _neighbors = new();
     private readonly Dictionary<NodeZone, List<Node>> _nodesByZone = new();
+    private static readonly List<Node> EmptyNeighbors = new();
 
     public static Graph Current { get; private set; }
 
@@ -156,7 +157,7 @@ public class Graph : MonoBehaviour
     {
         return _neighbors.TryGetValue(current, out List<Node> neighbors)
             ? neighbors
-            : new List<Node>();
+            : EmptyNeighbors;
     }
 
     public Node GetClosestNode(Vector3 position, bool avoidSafeZones = false)

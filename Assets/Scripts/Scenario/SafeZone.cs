@@ -35,7 +35,7 @@ public class SafeZone : ZoneMarker
     {
         Gizmos.color = new Color(0.7f, 0.4f, 1f, 0.8f);
         Gizmos.DrawWireCube(transform.position + Vector3.up * 0.5f,
-                            new Vector3(_size.x, 3f, _size.z));
+                            new Vector3(Size.x, 3f, Size.z));
 
         if (_entryPoint == null) return;
 

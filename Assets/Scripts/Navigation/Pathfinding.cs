@@ -3,14 +3,13 @@ using UnityEngine;
 
 public static class Pathfinding
 {
-    public enum HeuristicMethod { Distance, SQRMagnitude, Manhattan }
+    public enum HeuristicMethod { Distance, Manhattan }
 
     public static float GetHeuristic(Vector3 posA, Vector3 posB, HeuristicMethod method)
     {
         return method switch
         {
             HeuristicMethod.Distance => (posA - posB).magnitude,
-            HeuristicMethod.SQRMagnitude => (posB - posA).sqrMagnitude,
             HeuristicMethod.Manhattan => Mathf.Abs(posA.x - posB.x) + Mathf.Abs(posA.z - posB.z),
             _ => Vector3.Distance(posA, posB),
         };
