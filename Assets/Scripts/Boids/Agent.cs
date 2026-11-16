@@ -23,14 +23,18 @@ public class Agent : MonoBehaviour
     [SerializeField] private Transform target;
     [SerializeField] private Agent targetAgent;
 
-    private static readonly List<Agent> _allAgents = new();
     private Vector3 _velocity;
+    private bool _wrapAtBounds;
+    private BoidManager _boidManager;
 
     public Vector3 Velocity => _velocity;
 
+    private IReadOnlyList<Agent> FlockAgents =>
+        _boidManager != null ? _boidManager.Agents : System.Array.Empty<Agent>();
+
     private void Awake()
     {
-        _allAgents.Add(this);
+        _boidManager = GetComponentInParent<BoidManager>();
     }
 
     private void Start()
@@ -41,6 +45,7 @@ public class Agent : MonoBehaviour
 
     private void Update()
     {
+        float fixedHeight = transform.position.y;
         Vector3 acceleration = Vector3.zero;
 
         switch (_currentMode)
@@ -61,18 +66,32 @@ public class Agent : MonoBehaviour
                 break;
         }
 
+        if (_currentMode != SteeringModes.Flocking)
+            acceleration += CalculateSeparation(FlockAgents, _separationRadius) * _separationWeight;
+
+        acceleration.y = 0f;
+        _velocity.y = 0f;
         _velocity += acceleration * Time.deltaTime;
+        _velocity.y = 0f;
         _velocity = Vector3.ClampMagnitude(_velocity, _maxSpeed);
 
         Vector3 nextPosition = transform.position + _velocity * Time.deltaTime;
-        Vector3 clampedPosition = Bounds.Instance != null
-            ? Bounds.Instance.ClampPosition(nextPosition)
+        nextPosition.y = fixedHeight;
+
+        bool wrap = _wrapAtBounds && Bounds.Instance != null;
+        Vector3 boundedPosition = Bounds.Instance != null
+            ? (wrap ? Bounds.Instance.CalculateBoundPosition(nextPosition)
+                    : Bounds.Instance.ClampPosition(nextPosition))
             : nextPosition;
+        boundedPosition.y = fixedHeight;
 
-        if (!Mathf.Approximately(clampedPosition.x, nextPosition.x)) _velocity.x *= -0.5f;
-        if (!Mathf.Approximately(clampedPosition.z, nextPosition.z)) _velocity.z *= -0.5f;
+        if (!wrap)
+        {
+            if (!Mathf.Approximately(boundedPosition.x, nextPosition.x)) _velocity.x *= -0.5f;
+            if (!Mathf.Approximately(boundedPosition.z, nextPosition.z)) _velocity.z *= -0.5f;
+        }
 
-        transform.position = clampedPosition;
+        transform.position = boundedPosition;
 
         if (_velocity.sqrMagnitude > 0.0001f) transform.forward = _velocity;
     }
@@ -85,16 +104,36 @@ public class Agent : MonoBehaviour
         _velocity = randomVector.normalized * _maxSpeed;
     }
 
+    public void SetWrapAtBounds(bool wrap) => _wrapAtBounds = wrap;
+
+    public void SetFlockingMode()
+    {
+        _currentMode = SteeringModes.Flocking;
+        target = null;
+    }
+
+    public void SetArriveTarget(Transform newTarget)
+    {
+        _currentMode = SteeringModes.Arrive;
+        target = newTarget;
+    }
+
+    public void SetFleeTarget(Transform newTarget)
+    {
+        _currentMode = SteeringModes.Flee;
+        target = newTarget;
+    }
+
     #region Flocking
 
     private Vector3 CalculateFlocking()
     {
-        return CalculateSeparation(_allAgents, _separationRadius) * _separationWeight
-             + CalculateAlignment(_allAgents, _viewRadius) * _alignmentWeight
-             + CalculateCohesion(_allAgents, _viewRadius) * _cohesionWeight;
+        return CalculateSeparation(FlockAgents, _separationRadius) * _separationWeight
+             + CalculateAlignment(FlockAgents, _viewRadius) * _alignmentWeight
+             + CalculateCohesion(FlockAgents, _viewRadius) * _cohesionWeight;
     }
 
-    private Vector3 CalculateCohesion(List<Agent> agents, float radius)
+    private Vector3 CalculateCohesion(IReadOnlyList<Agent> agents, float radius)
     {
         Vector3 desiredPosition = default;
         int count = 0;
@@ -114,7 +153,7 @@ public class Agent : MonoBehaviour
         return CalculateSeek(desiredPosition);
     }
 
-    private Vector3 CalculateSeparation(List<Agent> agents, float radius)
+    private Vector3 CalculateSeparation(IReadOnlyList<Agent> agents, float radius)
     {
         Vector3 desired = default;
         int count = 0;
@@ -134,7 +173,7 @@ public class Agent : MonoBehaviour
         return CalculateSteering(-desired.normalized * _maxSpeed);
     }
 
-    private Vector3 CalculateAlignment(List<Agent> agents, float radius)
+    private Vector3 CalculateAlignment(IReadOnlyList<Agent> agents, float radius)
     {
         Vector3 desired = default;
         int count = 0;
@@ -220,11 +259,6 @@ public class Agent : MonoBehaviour
 
     #endregion
 
-    private void OnDestroy()
-    {
-        _allAgents.Remove(this);
-    }
-
     private void OnDrawGizmos()
     {
         Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.8f);
@@ -241,5 +275,6 @@ public class Agent : MonoBehaviour
             Gizmos.color = Color.white;
             Gizmos.DrawLine(transform.position, transform.position + _velocity);
         }
+
     }
 }

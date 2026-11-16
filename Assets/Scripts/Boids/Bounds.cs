@@ -33,6 +33,20 @@ public class Bounds : MonoBehaviour
         return position;
     }
 
+    public Vector3 CalculateBoundPosition(Vector3 position)
+    {
+        Vector3 center = transform.position;
+        float halfWidth = Mathf.Max(0.1f, _width * 0.5f - _margin);
+        float halfHeight = Mathf.Max(0.1f, _height * 0.5f - _margin);
+
+        if (position.x > center.x + halfWidth) position.x = center.x - halfWidth;
+        if (position.x < center.x - halfWidth) position.x = center.x + halfWidth;
+        if (position.z > center.z + halfHeight) position.z = center.z - halfHeight;
+        if (position.z < center.z - halfHeight) position.z = center.z + halfHeight;
+
+        return position;
+    }
+
     public bool Contains(Vector3 position)
     {
         Vector3 center = transform.position;
