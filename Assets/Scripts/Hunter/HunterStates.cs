@@ -74,7 +74,7 @@ public class SearchState : HunterState
         Boid liveBoid = Hunter.GetClosestVisibleLiveBoid();
         if (liveBoid != null)
         {
-            if (Hunter.TbaReady)
+            if (Hunter.CanAttack(liveBoid))
             {
                 _fsm.ChangeState(HunterStateId.Attack);
                 return;
@@ -148,26 +148,36 @@ public class AttackState : HunterState
 
         if (distance <= Hunter.MeleeAttackRadius)
         {
-            AttackAndReturn("Melee attack");
+            if (Hunter.MeleeReady)
+            {
+                HitTarget(Hunter.MeleeDamage, "Melee attack");
+                Hunter.ResetMeleeCooldown();
+                return;
+            }
+
+            Hunter.Stop();
+            Hunter.SetActionProgress(0f, "Waiting for melee");
             return;
         }
 
-        if (distance <= Hunter.RangeAttackRadius)
+        if (distance <= Hunter.RangeAttackRadius && Hunter.RangedReady)
         {
-            AttackAndReturn("Ranged attack");
+            HitTarget(Hunter.RangedDamage, "Ranged attack");
+            Hunter.ResetRangedCooldown();
             return;
         }
 
         Vector3 predictedPosition = Hunter.GetPredictedPosition(_target, Hunter.MoveSpeed);
         Hunter.MoveDirect(predictedPosition, Hunter.MoveSpeed, Hunter.MeleeStopDistance);
-        Hunter.SetActionProgress(0f, "Chasing");
+        Hunter.SetActionProgress(0f, distance <= Hunter.RangeAttackRadius
+            ? "Waiting for arrow"
+            : "Chasing");
     }
 
-    private void AttackAndReturn(string label)
+    private void HitTarget(float damage, string label)
     {
-        _target.TakeDamage(Hunter.AttackDamage);
+        _target.TakeDamage(damage);
         Hunter.ClearAttackTarget();
-        Hunter.ResetTba();
         Hunter.SetActionProgress(1f, label);
         _fsm.ChangeState(HunterStateId.Search);
     }

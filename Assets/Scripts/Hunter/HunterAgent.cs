@@ -23,8 +23,10 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [SerializeField] private float _meleeAttackRadius = 2f;
     [SerializeField] private float _meleeStopDistance = 1.3f;
     [SerializeField] private float _rangeAttackRadius = 7f;
-    [SerializeField] private float _attackDamage = 1f;
-    [SerializeField] private float _timeBetweenAttacks = 1.5f;
+    [SerializeField] private float _meleeDamage = 1f;
+    [SerializeField] private float _rangedDamage = 1.5f;
+    [SerializeField] private float _meleeCooldown = 0.3f;
+    [SerializeField] private float _rangedCooldown = 1f;
     [SerializeField] private float _gatherDuration = 2f;
     [SerializeField] private float _gatherApproachRadius = 5f;
     [SerializeField] private float _gatherRange = 1.5f;
@@ -55,7 +57,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     private static readonly int ColorId = Shader.PropertyToID("_Color");
 
     private int _gathers;
-    private float _nextAttackTime;
+    private float _nextMeleeTime;
+    private float _nextRangedTime;
     private bool _isDead;
     private bool _attackingVisual;
     private Boid _attackTarget;
@@ -68,7 +71,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public float MeleeAttackRadius => _meleeAttackRadius;
     public float MeleeStopDistance => _meleeStopDistance;
     public float RangeAttackRadius => _rangeAttackRadius;
-    public float AttackDamage => _attackDamage;
+    public float MeleeDamage => _meleeDamage;
+    public float RangedDamage => _rangedDamage;
     public float GatherDuration => _gatherDuration;
     public float GatherApproachRadius => _gatherApproachRadius;
     public float GatherRange => _gatherRange;
@@ -77,8 +81,10 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     public int Gathers => _gathers;
     public bool IsDead => _isDead;
-    public bool TbaReady => Time.time >= _nextAttackTime;
-    public float TimeUntilNextAttack => Mathf.Max(0f, _nextAttackTime - Time.time);
+    public bool MeleeReady => Time.time >= _nextMeleeTime;
+    public bool RangedReady => Time.time >= _nextRangedTime;
+    public float TimeUntilMelee => Mathf.Max(0f, _nextMeleeTime - Time.time);
+    public float TimeUntilRanged => Mathf.Max(0f, _nextRangedTime - Time.time);
 
     public HunterStateId CurrentState => _fsm.CurrentState;
     public string CurrentStateName => _fsm.CurrentStateName;
@@ -132,7 +138,10 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_sensor == null) _sensor = GetComponent<SensorAgent>();
         if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
         if (_collider == null) _collider = GetComponent<Collider>();
-        if (_attackDamage <= 0f) _attackDamage = 1f;
+        if (_meleeDamage <= 0f) _meleeDamage = 1f;
+        if (_rangedDamage <= 0f) _rangedDamage = 1.5f;
+        if (_meleeCooldown <= 0f) _meleeCooldown = 0.3f;
+        if (_rangedCooldown <= 0f) _rangedCooldown = 1f;
         if (_meleeStopDistance <= 0f) _meleeStopDistance = 1.3f;
 
         _materialBlock = new MaterialPropertyBlock();
@@ -328,7 +337,19 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _gatherTarget = null;
     }
 
-    public void ResetTba() => _nextAttackTime = Time.time + _timeBetweenAttacks;
+    public void ResetMeleeCooldown() => _nextMeleeTime = Time.time + _meleeCooldown;
+    public void ResetRangedCooldown() => _nextRangedTime = Time.time + _rangedCooldown;
+
+    public bool CanAttack(Boid target)
+    {
+        if (target == null) return false;
+
+        float distance = Vector3.Distance(transform.position, target.transform.position);
+        if (distance <= _meleeAttackRadius) return MeleeReady;
+        if (distance <= _rangeAttackRadius) return RangedReady;
+
+        return false;
+    }
 
     public void RegisterGather()
     {
@@ -367,7 +388,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
         _isDead = false;
         _gathers = 0;
-        _nextAttackTime = 0f;
+        _nextMeleeTime = 0f;
+        _nextRangedTime = 0f;
         _attackTarget = null;
         _gatherTarget = null;
         _selectedSafeZone = null;
