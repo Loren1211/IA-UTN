@@ -20,6 +20,7 @@ public class Graph : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private Node _nodePrefab;
+    [SerializeField] private ZoneManager _zoneManager;
 
     private Node[,] _grid;
     private readonly List<Node> _allNodes = new();
@@ -58,6 +59,11 @@ public class Graph : MonoBehaviour
         _gridOrigin = origin;
         _wallMask = wallMask;
         _floorMask = floorMask;
+    }
+
+    public void SetZoneManager(ZoneManager zoneManager)
+    {
+        _zoneManager = zoneManager;
     }
 
     public void GenerateGrid()
@@ -190,19 +196,23 @@ public class Graph : MonoBehaviour
 
     private NodeZone GetZone(Vector3 position)
     {
-        foreach (SafeZone safeZone in SafeZone.All)
+        if (_zoneManager == null) return NodeZone.Corridor;
+
+        return _zoneManager.GetZoneType(position) switch
         {
-            if (safeZone != null && safeZone.Contains(position)) return NodeZone.SafeZone;
-        }
-
-        if (Bounds.Instance != null && Bounds.Instance.Contains(position)) return NodeZone.HuntingGround;
-
-        return NodeZone.Corridor;
+            ZoneType.HuntingGround => NodeZone.HuntingGround,
+            ZoneType.Safe => NodeZone.SafeZone,
+            ZoneType.Start => NodeZone.Start,
+            ZoneType.Exit => NodeZone.Exit,
+            _ => NodeZone.Corridor
+        };
     }
 
     private void AssignSafeZoneEntries()
     {
-        foreach (SafeZone safeZone in SafeZone.All)
+        if (_zoneManager == null) return;
+
+        foreach (SafeZone safeZone in _zoneManager.SafeZones)
         {
             if (safeZone == null) continue;
 
@@ -267,6 +277,8 @@ public class Graph : MonoBehaviour
             {
                 NodeZone.HuntingGround => new Color(1f, 0.7f, 0.2f),
                 NodeZone.SafeZone => new Color(0.7f, 0.4f, 1f),
+                NodeZone.Start => new Color(0.3f, 0.9f, 0.5f),
+                NodeZone.Exit => new Color(0.3f, 0.6f, 1f),
                 _ => Color.white
             };
 

@@ -20,13 +20,13 @@ public static class Pathfinding
     {
         if (startingNode == null || endNode == null)
         {
-            Debug.LogWarning("A*: nodo inicial o final inválido.");
+            Debug.LogWarning("A*: invalid start or end node.");
             return new List<Node>();
         }
 
         if (Graph.Current == null)
         {
-            Debug.LogWarning("A*: no hay un grafo activo.");
+            Debug.LogWarning("A*: there is no active graph.");
             return new List<Node>();
         }
 
@@ -35,6 +35,8 @@ public static class Pathfinding
 
         PriorityQueue<Node> frontier = new();
         frontier.Enqueue(startingNode, 0f);
+
+        HashSet<Node> closed = new();
 
         Dictionary<Node, Node> cameFrom = new()
         {
@@ -53,6 +55,9 @@ public static class Pathfinding
         {
             Node current = frontier.Dequeue();
 
+            // Duplicate entries can remain in the queue after a cheaper path is found.
+            if (!closed.Add(current)) continue;
+
             if (current == endNode)
             {
                 List<Node> path = new();
@@ -70,6 +75,7 @@ public static class Pathfinding
             {
                 if (neighbor == null || neighbor.Blocked) continue;
                 if (avoidSafeZones && neighbor.IsSafeZone) continue;
+                if (closed.Contains(neighbor)) continue;
 
                 float newCost = costSoFar[current] + neighbor.Cost;
                 if (cameFrom.ContainsKey(neighbor) && newCost >= costSoFar[neighbor]) continue;

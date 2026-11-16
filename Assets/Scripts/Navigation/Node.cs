@@ -4,7 +4,9 @@ public enum NodeZone
 {
     Corridor,
     HuntingGround,
-    SafeZone
+    SafeZone,
+    Start,
+    Exit
 }
 
 public class Node : MonoBehaviour
