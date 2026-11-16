@@ -7,7 +7,7 @@ public class FiniteStateMachine<T>
     private State<T> _currentState;
 
     public T CurrentState { get; private set; }
-    public string CurrentStateName => _currentState != null ? _currentState.Name : "Sin estado";
+    public string CurrentStateName => _currentState != null ? _currentState.Name : "No state";
 
     public void AddState(T id, State<T> state)
     {
@@ -18,16 +18,11 @@ public class FiniteStateMachine<T>
     {
         if (!_allStates.TryGetValue(id, out State<T> nextState))
         {
-            Debug.LogError($"{id} - el estado no existe en la máquina de estados.");
+            Debug.LogError($"{id} - state is not registered in the state machine.");
             return;
         }
 
-        if (nextState == _currentState)
-        {
-            _currentState.Exit();
-            _currentState.Enter();
-            return;
-        }
+        if (nextState == _currentState) return;
 
         _currentState?.Exit();
         CurrentState = id;
