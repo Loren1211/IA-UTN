@@ -11,6 +11,8 @@ public class Agent : MonoBehaviour
     [SerializeField] private float _viewRadius = 5f;
     [SerializeField] private SteeringModes _currentMode = SteeringModes.Flocking;
     [SerializeField] private float _arriveRadius = 3f;
+    [SerializeField] private float _arriveStopDistance = 0.4f;
+    [SerializeField] private float _rotationSpeed = 10f;
 
     [Header("Flocking values")]
     [SerializeField] private float _separationRadius = 2f;
@@ -93,7 +95,11 @@ public class Agent : MonoBehaviour
 
         transform.position = boundedPosition;
 
-        if (_velocity.sqrMagnitude > 0.0001f) transform.forward = _velocity;
+        if (_velocity.sqrMagnitude > 0.01f)
+        {
+            transform.forward = Vector3.Slerp(transform.forward, _velocity.normalized,
+                Mathf.Clamp01(_rotationSpeed * Time.deltaTime));
+        }
     }
 
     public void ResetAt(Vector3 position)
@@ -230,8 +236,12 @@ public class Agent : MonoBehaviour
     private Vector3 CalculateArrive(Vector3 targetPosition)
     {
         Vector3 direction = targetPosition - transform.position;
-        float speed = _maxSpeed;
+        direction.y = 0f;
+
         float distance = direction.magnitude;
+        if (distance <= _arriveStopDistance) return CalculateSteering(Vector3.zero);
+
+        float speed = _maxSpeed;
 
         if (distance <= _arriveRadius)
         {

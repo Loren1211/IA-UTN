@@ -14,7 +14,7 @@ public class Boid : MonoBehaviour
 
     [Header("Interest")]
     [SerializeField] private float _interestRadius = 10f;
-    [SerializeField] private float _consumeRadius = 1.2f;
+    [SerializeField] private float _consumeRadius = 2f;
     [SerializeField] private float _consumeRate = 0.6f;
 
     [Header("Threat")]
@@ -45,7 +45,7 @@ public class Boid : MonoBehaviour
 
         if (_maxHealth <= 0f) _maxHealth = 3f;
         if (_interestRadius <= 0f) _interestRadius = 10f;
-        if (_consumeRadius <= 0f) _consumeRadius = 1.2f;
+        if (_consumeRadius <= 0f) _consumeRadius = 2f;
         if (_consumeRate <= 0f) _consumeRate = 0.6f;
         if (_threatRadius <= 0f) _threatRadius = 6f;
 
