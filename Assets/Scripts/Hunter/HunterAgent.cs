@@ -34,32 +34,25 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _fleeSpeed = 6f;
 
-    [Header("Visual")]
-    [SerializeField] private Color _defaultColor = new(0.25f, 0.8f, 0.35f);
-    [SerializeField] private Color _attackColor = new(1f, 0.85f, 0.2f);
-
     [Header("References")]
     [SerializeField] private Transform _startPoint;
     [SerializeField] private Transform _exitPoint;
     [SerializeField] private NavAgent _navAgent;
     [SerializeField] private SensorAgent _sensor;
-    [SerializeField] private Renderer _renderer;
     [SerializeField] private Collider _collider;
+    [SerializeField] private HunterVisual _visual;
+    [SerializeField] private EntityStatus _status;
     [SerializeField] private InterestPointSpawner _interestSpawner;
     [SerializeField] private BoidManager _boidManager;
     [SerializeField] private ZoneManager _zoneManager;
     [SerializeField] private WolfPack _wolfPack;
 
     private readonly FiniteStateMachine<HunterStateId> _fsm = new();
-    private MaterialPropertyBlock _materialBlock;
-    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    private static readonly int ColorId = Shader.PropertyToID("_Color");
 
     private int _gathers;
     private float _nextMeleeTime;
     private float _nextRangedTime;
     private bool _isDead;
-    private bool _attackingVisual;
     private Boid _attackTarget;
     private Boid _gatherTarget;
     private SafeZone _selectedSafeZone;
@@ -134,16 +127,14 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     {
         if (_navAgent == null) _navAgent = GetComponent<NavAgent>();
         if (_sensor == null) _sensor = GetComponent<SensorAgent>();
-        if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
         if (_collider == null) _collider = GetComponent<Collider>();
+        if (_visual == null) _visual = GetComponent<HunterVisual>();
+        if (_status == null) _status = GetComponent<EntityStatus>();
         if (_meleeDamage <= 0f) _meleeDamage = 1f;
         if (_rangedDamage <= 0f) _rangedDamage = 1.5f;
         if (_meleeCooldown <= 0f) _meleeCooldown = 0.3f;
         if (_rangedCooldown <= 0f) _rangedCooldown = 1f;
         if (_meleeStopDistance <= 0f) _meleeStopDistance = 1.3f;
-
-        _materialBlock = new MaterialPropertyBlock();
-        SetColor(_defaultColor);
 
         _fsm.AddState(HunterStateId.Search, new SearchState(_fsm, this));
         _fsm.AddState(HunterStateId.Attack, new AttackState(_fsm, this));
@@ -151,6 +142,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _fsm.AddState(HunterStateId.Flee, new FleeState(_fsm, this));
         _fsm.AddState(HunterStateId.Exit, new ExitState(_fsm, this));
         _fsm.AddState(HunterStateId.Dead, new DeadState(_fsm, this));
+
+        _fsm.StateChanged += OnStateChanged;
     }
 
     private void Start()
@@ -163,7 +156,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         }
 
         _fsm.ChangeState(HunterStateId.Search);
-        SetAttacking(false);
+        if (_visual != null) _visual.SetAttacking(false);
     }
 
     private void Update()
@@ -174,35 +167,26 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     private void UpdateHuntColor()
     {
+        if (_visual == null) return;
+
         bool hunting = CurrentState == HunterStateId.Attack ||
                        (CurrentState == HunterStateId.Search &&
                         GetClosestVisibleLiveBoid() != null);
 
-        SetAttacking(hunting);
+        _visual.SetAttacking(hunting);
+    }
+
+    private void OnStateChanged(HunterStateId state)
+    {
+        if (_status != null) _status.SetState(state.ToString());
     }
 
     public void SetActionProgress(float progress, string label)
     {
         CurrentActionProgress = Mathf.Clamp01(progress);
         CurrentActionLabel = label;
-    }
 
-    public void SetAttacking(bool attacking)
-    {
-        if (_attackingVisual == attacking) return;
-
-        _attackingVisual = attacking;
-        SetColor(attacking ? _attackColor : _defaultColor);
-    }
-
-    private void SetColor(Color color)
-    {
-        if (_renderer == null || _materialBlock == null) return;
-
-        _renderer.GetPropertyBlock(_materialBlock);
-        _materialBlock.SetColor(BaseColorId, color);
-        _materialBlock.SetColor(ColorId, color);
-        _renderer.SetPropertyBlock(_materialBlock);
+        if (_status != null) _status.SetAction(label, CurrentActionProgress);
     }
 
     public Boid GetClosestVisibleLiveBoid()
@@ -373,7 +357,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _selectedSafeZone = null;
 
         if (_navAgent != null) _navAgent.Stop();
-        SetAttacking(false);
+        if (_visual != null) _visual.SetAttacking(false);
         SetVisible(false);
         SetActionProgress(0f, "Dead");
     }
@@ -393,42 +377,15 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _selectedSafeZone = null;
 
         SetVisible(true);
-        SetAttacking(false);
+        if (_visual != null) _visual.SetAttacking(false);
         SetActionProgress(0f, "");
     }
 
     public void SetVisible(bool visible)
     {
-        if (_renderer != null) _renderer.enabled = visible;
+        if (_visual != null) _visual.SetVisible(visible);
         if (_collider != null) _collider.enabled = visible;
         if (_sensor != null) _sensor.enabled = visible;
         if (_navAgent != null) _navAgent.enabled = visible;
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = new Color(1f, 0.85f, 0.2f, 0.9f);
-        Gizmos.DrawWireSphere(transform.position, _meleeAttackRadius);
-
-        Gizmos.color = new Color(1f, 0.25f, 0.2f, 0.9f);
-        Gizmos.DrawWireSphere(transform.position, _rangeAttackRadius);
-
-        if (_attackTarget != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, _attackTarget.transform.position);
-        }
-
-        if (_gatherTarget != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(transform.position, _gatherTarget.transform.position);
-        }
-
-        if (_selectedSafeZone != null)
-        {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(transform.position, _selectedSafeZone.transform.position);
-        }
     }
 }

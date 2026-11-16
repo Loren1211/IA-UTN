@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 5892133615680209627}
   - component: {fileID: 3098876576914700004}
   - component: {fileID: 8717088654869893932}
+  - component: {fileID: 3112870574608357792}
+  - component: {fileID: 4429988484340573038}
   m_Layer: 0
   m_Name: Boid
   m_TagString: Untagged
@@ -72,7 +74,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boid
   _agent: {fileID: 3098876576914700004}
-  _renderer: {fileID: 3321763870719223416}
+  _visual: {fileID: 3112870574608357792}
+  _status: {fileID: 4429988484340573038}
   _threatSensor: {fileID: 4744934293985544273}
   _maxHealth: 3
   _respawnTime: 4
@@ -80,6 +83,36 @@ MonoBehaviour:
   _consumeRadius: 1.2
   _consumeRate: 0.6
   _threatRadius: 6
+--- !u!114 &3112870574608357792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252060110374163620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fafccef4fa011f1409dc840129091c70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidVisual
+  _renderer: {fileID: 3321763870719223416}
+  _fullHealthColor: {r: 0.2, g: 0.78, b: 0.95, a: 1}
+  _halfHealthColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  _lowHealthColor: {r: 0.95, g: 0.22, b: 0.2, a: 1}
+  _deadColor: {r: 0.05, g: 0.05, b: 0.06, a: 1}
+--- !u!114 &4429988484340573038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252060110374163620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fedf0a66ac4a0ce4e83a1dd2c7c54fc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityStatus
+  _displayName: 
 --- !u!1 &7464792674190627483
 GameObject:
   m_ObjectHideFlags: 0

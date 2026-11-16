@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ public class FiniteStateMachine<T>
 
     public T CurrentState { get; private set; }
     public string CurrentStateName => _currentState != null ? _currentState.Name : "No state";
+
+    public event Action<T> StateChanged;
 
     public void AddState(T id, State<T> state)
     {
@@ -28,6 +31,8 @@ public class FiniteStateMachine<T>
         CurrentState = id;
         _currentState = nextState;
         _currentState.Enter();
+
+        StateChanged?.Invoke(id);
     }
 
     public void Update()

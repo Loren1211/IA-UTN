@@ -4,7 +4,8 @@ public class Boid : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Agent _agent;
-    [SerializeField] private Renderer _renderer;
+    [SerializeField] private BoidVisual _visual;
+    [SerializeField] private EntityStatus _status;
     [SerializeField] private ThreatSensor _threatSensor;
 
     [Header("Health")]
@@ -25,9 +26,6 @@ public class Boid : MonoBehaviour
     private float _health;
     private float _respawnTimer;
     private BoidManager _boidManager;
-    private MaterialPropertyBlock _materialBlock;
-    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    private static readonly int ColorId = Shader.PropertyToID("_Color");
 
     public bool IsAlive => _isAlive;
     public bool IsGathered => _isGathered;
@@ -40,7 +38,8 @@ public class Boid : MonoBehaviour
     private void Awake()
     {
         if (_agent == null) _agent = GetComponent<Agent>();
-        if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
+        if (_visual == null) _visual = GetComponent<BoidVisual>();
+        if (_status == null) _status = GetComponent<EntityStatus>();
         if (_threatSensor == null) _threatSensor = GetComponentInChildren<ThreatSensor>();
         _boidManager = GetComponentInParent<BoidManager>();
 
@@ -51,8 +50,7 @@ public class Boid : MonoBehaviour
         if (_threatRadius <= 0f) _threatRadius = 6f;
 
         _health = _maxHealth;
-        _materialBlock = new MaterialPropertyBlock();
-        SetColor(new Color(0.20f, 0.78f, 0.95f));
+        UpdateStatus();
     }
 
     public void TakeDamage(float damage)
@@ -68,9 +66,7 @@ public class Boid : MonoBehaviour
             return;
         }
 
-        float healthPercent = _health / _maxHealth;
-        SetColor(Color.Lerp(new Color(0.95f, 0.25f, 0.20f),
-                            new Color(0.20f, 0.78f, 0.95f), healthPercent));
+        if (_visual != null) _visual.SetHealth(_health / _maxHealth);
     }
 
     public void Kill()
@@ -83,7 +79,9 @@ public class Boid : MonoBehaviour
         IsInterested = false;
 
         if (_agent != null) _agent.enabled = false;
-        SetColor(new Color(0.35f, 0.35f, 0.38f));
+        if (_visual != null) _visual.SetDead();
+
+        UpdateStatus();
     }
 
     public void Gather()
@@ -92,7 +90,10 @@ public class Boid : MonoBehaviour
 
         _isGathered = true;
         _respawnTimer = _respawnTime;
-        if (_renderer != null) _renderer.enabled = false;
+
+        if (_visual != null) _visual.SetVisible(false);
+
+        UpdateStatus();
     }
 
     private void Update()
@@ -107,6 +108,7 @@ public class Boid : MonoBehaviour
         if (!_isAlive) return;
 
         UpdateInterestAndThreat();
+        UpdateStatus();
     }
 
     private void UpdateInterestAndThreat()
@@ -155,6 +157,17 @@ public class Boid : MonoBehaviour
             point.Consume(Time.deltaTime * _consumeRate);
     }
 
+    private void UpdateStatus()
+    {
+        if (_status == null) return;
+
+        if (_isGathered) _status.SetState("Gathered");
+        else if (!_isAlive) _status.SetState("Dead");
+        else if (_isFleeing) _status.SetState("Fleeing");
+        else if (IsInterested) _status.SetState("Interested");
+        else _status.SetState("Flocking");
+    }
+
     public void Respawn()
     {
         Vector3 position = global::Bounds.Instance != null
@@ -169,23 +182,18 @@ public class Boid : MonoBehaviour
         _health = _maxHealth;
         transform.position = position;
 
-        if (_renderer != null) _renderer.enabled = true;
+        if (_visual != null)
+        {
+            _visual.SetVisible(true);
+            _visual.SetHealth(1f);
+        }
+
         if (_agent != null)
         {
             _agent.enabled = true;
             _agent.ResetAt(position);
         }
 
-        SetColor(new Color(0.20f, 0.78f, 0.95f));
-    }
-
-    private void SetColor(Color color)
-    {
-        if (_renderer == null) return;
-
-        _renderer.GetPropertyBlock(_materialBlock);
-        _materialBlock.SetColor(BaseColorId, color);
-        _materialBlock.SetColor(ColorId, color);
-        _renderer.SetPropertyBlock(_materialBlock);
+        UpdateStatus();
     }
 }

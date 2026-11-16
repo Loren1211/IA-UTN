@@ -113,7 +113,6 @@ public class AttackState : HunterState
     public override void Enter()
     {
         Hunter.ClearSafeZone();
-        Hunter.SetAttacking(true);
         _target = Hunter.GetClosestVisibleLiveBoid();
         Hunter.SetAttackTarget(_target);
 
@@ -184,7 +183,6 @@ public class AttackState : HunterState
 
     public override void Exit()
     {
-        Hunter.SetAttacking(false);
         Hunter.ClearAttackTarget();
         _target = null;
     }
