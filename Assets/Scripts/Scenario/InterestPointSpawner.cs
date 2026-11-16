@@ -42,7 +42,6 @@ public class InterestPointSpawner : MonoBehaviour
         if (_baitsRoot == null)
         {
             GameObject root = new("Baits");
-            root.transform.SetParent(transform, false);
             _baitsRoot = root.transform;
         }
 
