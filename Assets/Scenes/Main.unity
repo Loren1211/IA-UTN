@@ -403,7 +403,6 @@ MonoBehaviour:
   _meleeCooldown: 0.3
   _rangedCooldown: 1
   _gatherDuration: 2
-  _gatherApproachRadius: 5
   _gatherRange: 1.5
   _moveSpeed: 5
   _fleeSpeed: 6

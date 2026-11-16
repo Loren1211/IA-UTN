@@ -28,7 +28,6 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [SerializeField] private float _meleeCooldown = 0.3f;
     [SerializeField] private float _rangedCooldown = 1f;
     [SerializeField] private float _gatherDuration = 2f;
-    [SerializeField] private float _gatherApproachRadius = 5f;
     [SerializeField] private float _gatherRange = 1.5f;
 
     [Header("Movement")]
@@ -74,7 +73,6 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public float MeleeDamage => _meleeDamage;
     public float RangedDamage => _rangedDamage;
     public float GatherDuration => _gatherDuration;
-    public float GatherApproachRadius => _gatherApproachRadius;
     public float GatherRange => _gatherRange;
     public float MoveSpeed => _moveSpeed;
     public float FleeSpeed => _fleeSpeed;

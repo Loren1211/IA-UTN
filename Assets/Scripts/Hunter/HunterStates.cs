@@ -193,7 +193,7 @@ public class AttackState : HunterState
 public class GatherState : HunterState
 {
     private Boid _target;
-    private bool _directApproach;
+    private bool _usingPath;
     private float _gatherTimer;
 
     public GatherState(FiniteStateMachine<HunterStateId> fsm, HunterAgent hunter)
@@ -205,7 +205,7 @@ public class GatherState : HunterState
         Hunter.ClearSafeZone();
         _target = Hunter.GetClosestVisibleDeadBoid();
         Hunter.SetGatherTarget(_target);
-        _directApproach = false;
+        _usingPath = false;
         _gatherTimer = 0f;
 
         if (_target == null)
@@ -214,9 +214,7 @@ public class GatherState : HunterState
             return;
         }
 
-        if (!Hunter.NavigateTo(_target.transform.position, Hunter.MoveSpeed))
-            _directApproach = true;
-
+        Hunter.MoveDirect(_target.transform.position, Hunter.MoveSpeed, Hunter.GatherRange);
         Hunter.SetActionProgress(0f, "Gathering");
     }
 
@@ -225,12 +223,6 @@ public class GatherState : HunterState
         if (CheckGlobalTransitions()) return;
 
         if (_target == null || _target.IsAlive || _target.IsGathered)
-        {
-            CancelGather();
-            return;
-        }
-
-        if (!Hunter.Sensor.CanSee(_target.transform))
         {
             CancelGather();
             return;
@@ -257,14 +249,20 @@ public class GatherState : HunterState
             return;
         }
 
-        if (!_directApproach && distance <= Hunter.GatherApproachRadius)
+        if (Hunter.Sensor.CanSee(_target.transform))
         {
-            Hunter.Stop();
-            _directApproach = true;
-        }
-
-        if (_directApproach || !Hunter.NavAgent.IsMoving)
+            _usingPath = false;
             Hunter.MoveDirect(_target.transform.position, Hunter.MoveSpeed, Hunter.GatherRange);
+        }
+        else if (!_usingPath || !Hunter.NavAgent.IsMoving)
+        {
+            _usingPath = Hunter.NavigateTo(_target.transform.position, Hunter.MoveSpeed);
+            if (!_usingPath)
+            {
+                CancelGather();
+                return;
+            }
+        }
 
         Hunter.SetActionProgress(0f, "Gathering");
     }
