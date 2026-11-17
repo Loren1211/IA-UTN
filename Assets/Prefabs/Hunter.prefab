@@ -125,7 +125,7 @@ MonoBehaviour:
   _gatherRange: 1.5
   _moveSpeed: 5
   _fleeSpeed: 6
-  _wolfSightRadius: 7.15
+  _wolfDangerRadius: 3
   _wolfCheckInterval: 0.1
   _startPoint: {fileID: 0}
   _exitPoint: {fileID: 0}

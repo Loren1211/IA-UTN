@@ -80,7 +80,7 @@ public class SimulationHUD : MonoBehaviour
         _entitiesByStatus.Clear();
 
         if (_hunter != null)
-            AddEntity(_hunter.GetComponent<EntityStatus>(), true, "Hunter");
+            AddEntity(_hunter.GetComponent<EntityStatus>(), true, "Cazador");
 
         if (_wolfPack != null)
         {
@@ -132,7 +132,7 @@ public class SimulationHUD : MonoBehaviour
         if (Time.time < _nextHowlLog) return;
 
         _nextHowlLog = Time.time + 2f;
-        AddEvent("Howl: pack alerted");
+        AddEvent("Aullido: manada alertada");
     }
 
     private void AddEvent(string text)
@@ -152,7 +152,7 @@ public class SimulationHUD : MonoBehaviour
         if (_drawZoneLabels) DrawZones();
 
         DrawEntities();
-        DrawWolfSight();
+        DrawWolfThreat();
         DrawAlert();
         DrawLastKnown();
 
@@ -332,11 +332,11 @@ public class SimulationHUD : MonoBehaviour
         {
             for (int i = 0; i < _wolfPack.Agents.Count; i++)
             {
-                if (_wolfPack.Agents[i] == wolf) return $"Wolf {i + 1}";
+                if (_wolfPack.Agents[i] == wolf) return $"Lobo {i + 1}";
             }
         }
 
-        return "Wolf";
+        return "Lobo";
     }
 
     private void DrawEntityLabel(EntityStatus status, string displayName, Vector3 worldPosition,
@@ -382,24 +382,22 @@ public class SimulationHUD : MonoBehaviour
         GUI.color = savedColor;
     }
 
-    private void DrawWolfSight()
+    private void DrawWolfThreat()
     {
         if (_hunter == null) return;
 
         WolfAgent wolf = _hunter.PerceivedWolf;
         if (wolf == null) return;
 
+        Color color = wolf.IsSeeingTarget
+            ? new Color(1f, 0.25f, 0.2f, 0.9f)
+            : new Color(1f, 0.75f, 0.1f, 0.9f);
+
         if (Project(_hunter.transform.position, out Vector2 from) &&
             Project(wolf.transform.position, out Vector2 to))
         {
-            DrawLine(from, to, new Color(1f, 0.35f, 0.1f, 0.9f), 2f);
+            DrawLine(from, to, color, 2f);
         }
-
-        if (!Project(_hunter.transform.position + Vector3.up * _hunterLabelHeight,
-                     out Vector2 labelPoint)) return;
-
-        GUI.Label(new Rect(labelPoint.x + 8f, labelPoint.y - 10f, 170f, 18f),
-            $"Wolf spotted: {GetWolfLabel(wolf)}", _zoneStyle);
     }
 
     private void DrawAlert()
@@ -449,48 +447,45 @@ public class SimulationHUD : MonoBehaviour
         GUI.DrawTexture(new Rect(screen.x - 1f, screen.y - LastKnownMarkerRadius,
             2f, LastKnownMarkerRadius * 2f), Texture2D.whiteTexture);
         GUI.color = savedColor;
-
-        GUI.Label(new Rect(screen.x + 10f, screen.y - 10f, 110f, 20f), "Last known", _zoneStyle);
     }
 
     private void DrawPanel()
     {
         StringBuilder builder = new();
-        builder.AppendLine("HUNTER");
+        builder.AppendLine("CAZADOR");
 
         if (_hunter != null)
         {
-            builder.AppendLine($"State: {_hunter.CurrentStateName}");
-
-            if (!string.IsNullOrEmpty(_hunter.CurrentActionLabel))
-                builder.AppendLine($"Action: {_hunter.CurrentActionLabel}");
-
-            builder.AppendLine($"Prey: {_hunter.Gathers}/{_hunter.RequiredGathers}");
-            builder.AppendLine($"Escapes: {_hunter.Escapes}   Deaths: {_hunter.Deaths}");
-            builder.AppendLine($"Melee: {FormatCooldown(_hunter.MeleeReady, _hunter.TimeUntilMelee)}   " +
-                               $"Arrow: {FormatCooldown(_hunter.RangedReady, _hunter.TimeUntilRanged)}");
-            builder.AppendLine($"Safe zone: {(_hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-")}");
-            builder.AppendLine($"Wolf in sight: {(_hunter.PerceivedWolf != null ? GetWolfLabel(_hunter.PerceivedWolf) : "-")}");
+            builder.AppendLine($"Estado: {_hunter.CurrentStateName}");
+            builder.AppendLine($"Recolecciones: {_hunter.Gathers}/{_hunter.RequiredGathers}");
+            builder.AppendLine($"Salidas: {_hunter.Escapes}   Muertes: {_hunter.Deaths}");
+            builder.AppendLine($"TBA melee: {FormatCooldown(_hunter.MeleeReady, _hunter.TimeUntilMelee)}   " +
+                               $"TBA arco: {FormatCooldown(_hunter.RangedReady, _hunter.TimeUntilRanged)}");
+            builder.AppendLine($"Objetivo: {GetHunterObjective()}");
+            builder.AppendLine($"Wolf threat: {(_hunter.PerceivedWolf != null ? GetWolfLabel(_hunter.PerceivedWolf) : "-")}");
+            builder.AppendLine($"Zona segura elegida: {(_hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-")}");
+            builder.AppendLine($"Acción: {GetHunterAction()}");
         }
 
         builder.AppendLine();
-        builder.AppendLine("WOLVES");
+        builder.AppendLine("LOBOS");
 
         if (_wolfPack != null)
         {
             foreach (WolfAgent wolf in _wolfPack.Agents)
             {
-                if (wolf != null) builder.AppendLine($"{GetWolfLabel(wolf)}: {wolf.CurrentStateName}");
+                if (wolf == null) continue;
+
+                string lastPosition = wolf.HasLastKnown ? FormatPosition(wolf.LastKnownPosition) : "-";
+                builder.AppendLine($"{GetWolfLabel(wolf)}: {wolf.CurrentStateName}");
+                builder.AppendLine($"   últ. pos: {lastPosition}   A*: {FormatPathCount(wolf.NavAgent)}");
             }
         }
-
-        builder.AppendLine();
-        builder.AppendLine($"Last known: {FormatLastKnown()}");
 
         if (_events.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("EVENTS");
+            builder.AppendLine("EVENTOS");
 
             foreach (string entry in _events) builder.AppendLine(entry);
         }
@@ -508,17 +503,47 @@ public class SimulationHUD : MonoBehaviour
             text, _panelTextStyle);
     }
 
-    private static string FormatCooldown(bool ready, float remaining)
+    private string GetHunterObjective()
     {
-        return ready ? "ready" : $"{remaining:0.0}s";
+        if (_hunter == null) return "-";
+
+        switch (_hunter.CurrentState)
+        {
+            case HunterStateId.Search:
+                return "Coto de caza";
+            case HunterStateId.Attack:
+                return _hunter.AttackTarget != null ? _hunter.AttackTarget.name : "-";
+            case HunterStateId.Gather:
+                return _hunter.GatherTarget != null ? _hunter.GatherTarget.name : "-";
+            case HunterStateId.Flee:
+                return _hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-";
+            case HunterStateId.Exit:
+                return "Salida";
+            default:
+                return "-";
+        }
     }
 
-    private string FormatLastKnown()
+    private string GetHunterAction()
     {
-        if (_wolfPack == null || !_wolfPack.LastKnownHunterPosition.HasValue) return "-";
+        return _hunter != null && !string.IsNullOrEmpty(_hunter.CurrentActionLabel)
+            ? _hunter.CurrentActionLabel
+            : "-";
+    }
 
-        Vector3 position = _wolfPack.LastKnownHunterPosition.Value;
+    private static string FormatPathCount(NavAgent agent)
+    {
+        return agent != null && agent.IsFollowingPath ? agent.CurrentPath.Count.ToString() : "-";
+    }
+
+    private static string FormatPosition(Vector3 position)
+    {
         return $"({position.x:0.0}, {position.z:0.0})";
+    }
+
+    private static string FormatCooldown(bool ready, float remaining)
+    {
+        return ready ? "listo" : $"{remaining:0.0}s";
     }
 
     private sealed class HudEntity

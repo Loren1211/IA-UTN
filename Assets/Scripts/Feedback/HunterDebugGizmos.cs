@@ -18,8 +18,8 @@ public class HunterDebugGizmos : MonoBehaviour
         Gizmos.color = new Color(1f, 0.25f, 0.2f, 0.9f);
         Gizmos.DrawWireSphere(hunter.transform.position, hunter.RangeAttackRadius);
 
-        Gizmos.color = new Color(1f, 0.55f, 0.1f, 0.7f);
-        Gizmos.DrawWireSphere(hunter.transform.position, hunter.WolfSightRadius);
+        Gizmos.color = new Color(1f, 0.55f, 0.1f, 0.5f);
+        Gizmos.DrawWireSphere(hunter.transform.position, hunter.WolfDangerRadius);
 
         if (hunter.AttackTarget != null)
         {
@@ -41,7 +41,9 @@ public class HunterDebugGizmos : MonoBehaviour
 
         if (hunter.PerceivedWolf != null)
         {
-            Gizmos.color = new Color(1f, 0.45f, 0.1f, 0.9f);
+            Gizmos.color = hunter.PerceivedWolf.IsSeeingTarget
+                ? new Color(1f, 0.25f, 0.2f, 0.9f)
+                : new Color(1f, 0.75f, 0.1f, 0.9f);
             Gizmos.DrawLine(hunter.transform.position, hunter.PerceivedWolf.transform.position);
         }
     }

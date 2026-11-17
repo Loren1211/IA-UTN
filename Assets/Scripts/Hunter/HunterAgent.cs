@@ -35,7 +35,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [SerializeField] private float _fleeSpeed = 6f;
 
     [Header("Perception")]
-    [SerializeField] private float _wolfSightRadius = 7.15f;
+    [SerializeField] private float _wolfDangerRadius = 3f;
     [SerializeField] private float _wolfCheckInterval = 0.1f;
 
     [Header("References")]
@@ -81,7 +81,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public float GatherRange => _gatherRange;
     public float MoveSpeed => _moveSpeed;
     public float FleeSpeed => _fleeSpeed;
-    public float WolfSightRadius => _wolfSightRadius;
+    public float WolfDangerRadius => _wolfDangerRadius;
 
     public int Gathers => _gathers;
     public int Escapes { get; private set; }
@@ -129,8 +129,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public bool IsInSafeZone => _zoneManager != null && _zoneManager.IsInsideSafeZone(transform.position);
 
     public WolfAgent PerceivedWolf => _perceivedWolf;
-    public bool SeesWolf => _perceivedWolf != null;
-    public bool CanFlee => SeesWolf && Time.time >= _nextFleeTime;
+    public bool HasWolfThreat => _perceivedWolf != null;
+    public bool CanFlee => HasWolfThreat && Time.time >= _nextFleeTime;
 
     public void DeferFlee(float seconds)
     {
@@ -165,7 +165,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_meleeCooldown <= 0f) _meleeCooldown = 0.3f;
         if (_rangedCooldown <= 0f) _rangedCooldown = 1f;
         if (_meleeStopDistance <= 0f) _meleeStopDistance = 1.3f;
-        if (_wolfSightRadius <= 0f) _wolfSightRadius = 7.15f;
+        if (_wolfDangerRadius <= 0f) _wolfDangerRadius = 3f;
         if (_wolfCheckInterval <= 0f) _wolfCheckInterval = 0.1f;
     }
 
@@ -220,7 +220,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     private void UpdateWolfPerception()
     {
-        if (_isDead || _sensor == null || !_sensor.enabled)
+        if (_isDead)
         {
             _perceivedWolf = null;
             return;
@@ -229,16 +229,18 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (Time.time < _nextWolfCheckTime) return;
         _nextWolfCheckTime = Time.time + _wolfCheckInterval;
 
-        _perceivedWolf = FindClosestVisibleWolf();
+        _perceivedWolf = FindClosestWolfThreat();
     }
 
-    private WolfAgent FindClosestVisibleWolf()
+    private WolfAgent FindClosestWolfThreat()
     {
-        if (_sensor == null || _wolfPack == null) return null;
+        if (_wolfPack == null) return null;
 
-        WolfAgent closest = null;
-        float bestDistance = float.MaxValue;
-        float sqrSightRadius = _wolfSightRadius * _wolfSightRadius;
+        WolfAgent closestSeeing = null;
+        WolfAgent closestNear = null;
+        float bestSeeing = float.MaxValue;
+        float bestNear = float.MaxValue;
+        float sqrDangerRadius = _wolfDangerRadius * _wolfDangerRadius;
 
         foreach (WolfAgent wolf in _wolfPack.Agents)
         {
@@ -246,18 +248,27 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
             Vector3 difference = wolf.transform.position - transform.position;
             difference.y = 0f;
-            if (difference.sqrMagnitude > sqrSightRadius) continue;
-
-            if (!_sensor.CanSee(wolf.transform)) continue;
-
             float distance = difference.sqrMagnitude;
-            if (distance >= bestDistance) continue;
 
-            bestDistance = distance;
-            closest = wolf;
+            if (wolf.IsSeeingTarget)
+            {
+                if (distance < bestSeeing)
+                {
+                    bestSeeing = distance;
+                    closestSeeing = wolf;
+                }
+
+                continue;
+            }
+
+            if (distance <= sqrDangerRadius && distance < bestNear)
+            {
+                bestNear = distance;
+                closestNear = wolf;
+            }
         }
 
-        return closest;
+        return closestSeeing != null ? closestSeeing : closestNear;
     }
 
     private void UpdateSafeZonePresence()
