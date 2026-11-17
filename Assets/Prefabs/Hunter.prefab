@@ -163,7 +163,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HunterVisual
   _renderer: {fileID: 6025008575459068418}
   _defaultColor: {r: 0.25, g: 0.8, b: 0.35, a: 1}
-  _attackColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  _attackColor: {r: 1, g: 0.55, b: 0.15, a: 1}
 --- !u!114 &1525549384331598900
 MonoBehaviour:
   m_ObjectHideFlags: 0

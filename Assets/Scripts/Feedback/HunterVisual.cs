@@ -4,7 +4,7 @@ public class HunterVisual : MonoBehaviour
 {
     [SerializeField] private Renderer _renderer;
     [SerializeField] private Color _defaultColor = new(0.25f, 0.8f, 0.35f);
-    [SerializeField] private Color _attackColor = new(1f, 0.85f, 0.2f);
+    [SerializeField] private Color _attackColor = new(1f, 0.55f, 0.15f);
     [SerializeField] private Color _fleeColor = new(0.20f, 0.78f, 0.95f);
 
     private MaterialPropertyBlock _materialBlock;

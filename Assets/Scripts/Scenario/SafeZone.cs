@@ -2,25 +2,18 @@ using UnityEngine;
 
 public class SafeZone : ZoneMarker
 {
-    [SerializeField] private Transform _entryPoint;
+    public Vector3 Center => transform.position;
 
-    public Node EntryNode { get; set; }
-    public Vector3 EntryPosition => _entryPoint != null ? _entryPoint.position : transform.position;
-
-    public void Configure(string displayName, Color color, Vector3 size, Transform entryPoint)
+    public void Configure(string displayName, Color color, Vector3 size)
     {
         base.Configure(displayName, color, ZoneType.Safe, size);
-        _entryPoint = entryPoint;
     }
 
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();
 
-        if (_entryPoint == null) return;
-
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawSphere(_entryPoint.position, 0.2f);
-        Gizmos.DrawLine(transform.position, _entryPoint.position);
+        Gizmos.color = new Color(0.30f, 0.90f, 1f, 0.9f);
+        Gizmos.DrawWireSphere(transform.position, 0.5f);
     }
 }

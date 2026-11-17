@@ -247,9 +247,12 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
         foreach (SafeZone zone in _zoneManager.SafeZones)
         {
-            if (zone == null || zone.EntryNode == null) continue;
+            if (zone == null) continue;
 
-            List<Node> path = Pathfinding.AStar(start, zone.EntryNode);
+            Node target = graph.GetClosestNode(zone.Center, node => node.IsSafeZone);
+            if (target == null) continue;
+
+            List<Node> path = Pathfinding.AStar(start, target);
             if (path.Count == 0) continue;
 
             float length = Pathfinding.GetPathLength(path);

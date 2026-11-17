@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(-100)]
@@ -104,7 +104,6 @@ public class Graph : MonoBehaviour
         }
 
         BuildConnections();
-        AssignSafeZoneEntries();
     }
 
     private void ClearGraph()
@@ -166,7 +165,14 @@ public class Graph : MonoBehaviour
             : EmptyNeighbors;
     }
 
+    private static readonly System.Func<Node, bool> NotSafeNode = node => !node.IsSafeZone;
+
     public Node GetClosestNode(Vector3 position, bool avoidSafeZones = false)
+    {
+        return GetClosestNode(position, avoidSafeZones ? NotSafeNode : null);
+    }
+
+    public Node GetClosestNode(Vector3 position, System.Func<Node, bool> filter)
     {
         Node closest = null;
         float bestDistance = float.MaxValue;
@@ -174,7 +180,7 @@ public class Graph : MonoBehaviour
         foreach (Node node in _allNodes)
         {
             if (node == null || node.Blocked) continue;
-            if (avoidSafeZones && node.IsSafeZone) continue;
+            if (filter != null && !filter(node)) continue;
 
             Vector3 difference = node.transform.position - position;
             difference.y = 0f;
@@ -206,35 +212,6 @@ public class Graph : MonoBehaviour
             ZoneType.Exit => NodeZone.Exit,
             _ => NodeZone.Corridor
         };
-    }
-
-    private void AssignSafeZoneEntries()
-    {
-        if (_zoneManager == null) return;
-
-        foreach (SafeZone safeZone in _zoneManager.SafeZones)
-        {
-            if (safeZone == null) continue;
-
-            Node closest = null;
-            float bestDistance = float.MaxValue;
-
-            foreach (Node node in _allNodes)
-            {
-                if (node == null || !node.IsSafeZone) continue;
-                if (!safeZone.Contains(node.transform.position)) continue;
-
-                Vector3 difference = node.transform.position - safeZone.EntryPosition;
-                difference.y = 0f;
-                float distance = difference.sqrMagnitude;
-                if (distance >= bestDistance) continue;
-
-                bestDistance = distance;
-                closest = node;
-            }
-
-            safeZone.EntryNode = closest;
-        }
     }
 
     private Vector3 GetCellCenter(int x, int y)
