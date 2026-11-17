@@ -371,6 +371,7 @@ public class SimulationHUD : MonoBehaviour
                 builder.AppendLine($"Action: {_hunter.CurrentActionLabel}");
 
             builder.AppendLine($"Prey: {_hunter.Gathers}/{_hunter.RequiredGathers}");
+            builder.AppendLine($"Escapes: {_hunter.Escapes}   Deaths: {_hunter.Deaths}");
             builder.AppendLine($"Melee: {FormatCooldown(_hunter.MeleeReady, _hunter.TimeUntilMelee)}   " +
                                $"Arrow: {FormatCooldown(_hunter.RangedReady, _hunter.TimeUntilRanged)}");
             builder.AppendLine($"Safe zone: {(_hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-")}");

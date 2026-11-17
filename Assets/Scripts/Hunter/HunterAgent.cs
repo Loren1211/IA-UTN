@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -72,6 +73,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public float FleeSpeed => _fleeSpeed;
 
     public int Gathers => _gathers;
+    public int Escapes { get; private set; }
+    public int Deaths { get; private set; }
     public bool IsDead => _isDead;
     public bool MeleeReady => Time.time >= _nextMeleeTime;
     public bool RangedReady => Time.time >= _nextRangedTime;
@@ -81,6 +84,9 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public HunterStateId CurrentState => _fsm.CurrentState;
     public string CurrentStateName => _fsm.CurrentStateName;
     public Vector3 Velocity { get; private set; }
+
+    public event Action Died;
+    public event Action Escaped;
     public Boid AttackTarget => _attackTarget;
     public Boid GatherTarget => _gatherTarget;
     public SafeZone SelectedSafeZone => _selectedSafeZone;
@@ -385,6 +391,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public void OnDeath()
     {
         _isDead = true;
+        Deaths++;
         _attackTarget = null;
         _gatherTarget = null;
         _selectedSafeZone = null;
@@ -396,6 +403,13 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_visual != null) _visual.SetFleeing(false);
         SetVisible(false);
         SetActionProgress(0f, "Dead");
+        Died?.Invoke();
+    }
+
+    public void NotifyEscaped()
+    {
+        Escapes++;
+        Escaped?.Invoke();
     }
 
     public void RespawnAtStart()

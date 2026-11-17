@@ -439,6 +439,7 @@ public class ExitState : HunterState
         Hunter.Stop();
         Hunter.SetVisible(false);
         Hunter.SetActionProgress(1f, "At the exit");
+        Hunter.NotifyEscaped();
     }
 }
 
