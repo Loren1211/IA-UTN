@@ -18,17 +18,7 @@ public class InterestPointSpawner : MonoBehaviour
     private Material _material;
     private float _nextSpawnTime;
 
-    public int ActiveCount
-    {
-        get
-        {
-            CleanupActive();
-            return _activePoints.Count;
-        }
-    }
-
-    public int MaxActive => _maxActive;
-    public IReadOnlyList<InterestPoint> ActivePoints => _activePoints;
+    private const float SpawnHeightOffset = 0.05f;
 
     private void Awake()
     {
@@ -41,7 +31,7 @@ public class InterestPointSpawner : MonoBehaviour
 
         if (_baitsRoot == null)
         {
-            GameObject root = new("Baits");
+            GameObject root = new("Traps");
             _baitsRoot = root.transform;
         }
 
@@ -64,7 +54,7 @@ public class InterestPointSpawner : MonoBehaviour
         if (Time.time < _nextSpawnTime) return false;
 
         Vector3 position = _bounds.RandomPointInside();
-        position.y = 0.05f + _size * 0.5f;
+        position.y = SpawnHeightOffset + _size * 0.5f;
 
         GameObject point = GameObject.CreatePrimitive(PrimitiveType.Cube);
         point.name = $"Bait {_activePoints.Count + 1}";

@@ -137,7 +137,7 @@ public class WolfChaseState : WolfState
             if (Wolf.HasLineOfSight(position))
             {
                 Vector3 aim = position;
-                HunterAgent hunter = Wolf.CurrentTarget.GetComponentInParent<HunterAgent>();
+                HunterAgent hunter = Wolf.HunterTarget;
 
                 if (hunter != null)
                 {
@@ -182,6 +182,8 @@ public class WolfChaseState : WolfState
 
 public class WolfSearchState : WolfState
 {
+    private const float SearchTurnScale = 0.5f;
+
     private float _timer;
 
     public WolfSearchState(FiniteStateMachine<WolfStateId> fsm, WolfAgent wolf)
@@ -211,7 +213,7 @@ public class WolfSearchState : WolfState
             return;
         }
 
-        Wolf.RotateInPlace(Wolf.TurnSpeed * 0.5f);
+        Wolf.RotateInPlace(Wolf.TurnSpeed * SearchTurnScale);
 
         if (_timer < Wolf.SearchDuration) return;
 

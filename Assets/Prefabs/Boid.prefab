@@ -54,7 +54,10 @@ MonoBehaviour:
   _viewRadius: 5
   _currentMode: 5
   _arriveRadius: 3
+  _arriveStopDistance: 0.4
+  _rotationSpeed: 10
   _separationRadius: 2
+  _alignmentRadius: 4
   _visionRadius: 6
   _separationWeight: 1.5
   _cohesionWeight: 1
@@ -124,7 +127,7 @@ GameObject:
   - component: {fileID: 8686090239399724047}
   - component: {fileID: 4744934293985544273}
   m_Layer: 2
-  m_Name: ThreatSensor
+  m_Name: Sensor de Amenaza
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

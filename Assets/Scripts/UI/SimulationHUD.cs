@@ -23,6 +23,8 @@ public class SimulationHUD : MonoBehaviour
     [SerializeField] private bool _drawPanel = true;
 
     private readonly List<EntityStatus> _statuses = new();
+    private readonly List<HudEntity> _entities = new();
+    private readonly Dictionary<EntityStatus, HudEntity> _entitiesByStatus = new();
     private readonly List<string> _events = new();
 
     private GUIStyle _entityStyle;
@@ -30,6 +32,11 @@ public class SimulationHUD : MonoBehaviour
     private GUIStyle _zoneStyle;
 
     private const float AlertDuration = 1.2f;
+    private const float AlertStartRadius = 0.4f;
+    private const float AlertEndRadius = 4.5f;
+    private const int AlertSegments = 32;
+    private const float MinLineLength = 1f;
+    private const float LastKnownMarkerRadius = 8f;
 
     private Vector3 _alertHowler;
     private float _alertUntil;
@@ -43,33 +50,63 @@ public class SimulationHUD : MonoBehaviour
     private void Start()
     {
         CollectStatuses();
+    }
 
+    private void OnEnable()
+    {
         if (_wolfPack != null) _wolfPack.AlertRaised += OnAlertRaised;
+    }
+
+    private void OnDisable()
+    {
+        if (_wolfPack != null) _wolfPack.AlertRaised -= OnAlertRaised;
     }
 
     private void OnDestroy()
     {
-        if (_wolfPack != null) _wolfPack.AlertRaised -= OnAlertRaised;
-
         foreach (EntityStatus status in _statuses)
         {
             if (status != null) status.StateChanged -= OnStateChanged;
         }
 
         _statuses.Clear();
+        _entities.Clear();
+        _entitiesByStatus.Clear();
     }
 
     private void CollectStatuses()
     {
-        if (_hunter != null) AddStatus(_hunter.GetComponent<EntityStatus>());
+        _entities.Clear();
+        _entitiesByStatus.Clear();
+
+        if (_hunter != null)
+            AddEntity(_hunter.GetComponent<EntityStatus>(), true, "Hunter");
 
         if (_wolfPack != null)
         {
             foreach (WolfAgent wolf in _wolfPack.Agents)
             {
-                if (wolf != null) AddStatus(wolf.GetComponent<EntityStatus>());
+                if (wolf != null)
+                    AddEntity(wolf.GetComponent<EntityStatus>(), false, GetWolfLabel(wolf));
             }
         }
+    }
+
+    private void AddEntity(EntityStatus status, bool isHunter, string label)
+    {
+        if (status == null) return;
+
+        HudEntity entity = new()
+        {
+            Status = status,
+            IsHunter = isHunter,
+            Transform = status.transform,
+            Label = label
+        };
+
+        _entities.Add(entity);
+        _entitiesByStatus[status] = entity;
+        AddStatus(status);
     }
 
     private void AddStatus(EntityStatus status)
@@ -82,8 +119,9 @@ public class SimulationHUD : MonoBehaviour
 
     private void OnStateChanged(EntityStatus status)
     {
-        if (status.GetComponent<Boid>() != null) return;
-        AddEvent($"{status.DisplayName} -> {status.State}");
+        if (!_entitiesByStatus.TryGetValue(status, out HudEntity entity)) return;
+
+        AddEvent($"{entity.Label} -> {status.State}");
     }
 
     private void OnAlertRaised(Vector3 hunterPosition, Vector3 howlerPosition)
@@ -114,6 +152,7 @@ public class SimulationHUD : MonoBehaviour
         if (_drawZoneLabels) DrawZones();
 
         DrawEntities();
+        DrawWolfSight();
         DrawAlert();
         DrawLastKnown();
 
@@ -165,7 +204,7 @@ public class SimulationHUD : MonoBehaviour
     private void DrawLine(Vector2 from, Vector2 to, Color color, float width)
     {
         float length = Vector2.Distance(from, to);
-        if (length < 1f) return;
+        if (length < MinLineLength) return;
 
         Matrix4x4 savedMatrix = GUI.matrix;
         Color savedColor = GUI.color;
@@ -184,7 +223,7 @@ public class SimulationHUD : MonoBehaviour
         if (_hunter != null)
         {
             DrawAgentPath(_hunter.transform.position, _hunter.NavAgent,
-                _hunter.GetComponent<EntityStatus>());
+                GetStatus(_hunter.transform));
         }
 
         if (_wolfPack == null) return;
@@ -194,8 +233,18 @@ public class SimulationHUD : MonoBehaviour
             if (wolf == null) continue;
 
             DrawAgentPath(wolf.transform.position, wolf.NavAgent,
-                wolf.GetComponent<EntityStatus>());
+                GetStatus(wolf.transform));
         }
+    }
+
+    private EntityStatus GetStatus(Transform target)
+    {
+        foreach (HudEntity entity in _entities)
+        {
+            if (entity.Transform == target) return entity.Status;
+        }
+
+        return null;
     }
 
     private void DrawAgentPath(Vector3 origin, NavAgent agent, EntityStatus status)
@@ -263,35 +312,41 @@ public class SimulationHUD : MonoBehaviour
 
     private void DrawEntities()
     {
-        foreach (EntityStatus status in _statuses)
+        foreach (HudEntity entity in _entities)
         {
+            EntityStatus status = entity.Status;
             if (status == null || !status.gameObject.activeInHierarchy) continue;
 
-            HunterAgent hunter = status.GetComponent<HunterAgent>();
-            if (hunter != null)
-            {
-                bool showBar = status.Progress > 0.001f;
-                DrawEntityLabel(status, hunter.transform.position, _hunterLabelHeight,
-                    showBar, status.Progress);
-                continue;
-            }
+            bool showBar = entity.IsHunter && status.Progress > 0.001f;
+            float barValue = showBar ? status.Progress : 0f;
+            float offset = entity.IsHunter ? _hunterLabelHeight : _wolfLabelHeight;
 
-            WolfAgent wolf = status.GetComponent<WolfAgent>();
-            if (wolf != null)
-            {
-                DrawEntityLabel(status, wolf.transform.position, _wolfLabelHeight, false, 0f);
-            }
+            DrawEntityLabel(status, entity.Label, entity.Transform.position,
+                offset, showBar, barValue);
         }
     }
 
-    private void DrawEntityLabel(EntityStatus status, Vector3 worldPosition, float offset,
-                                 bool showBar, float barValue)
+    private string GetWolfLabel(WolfAgent wolf)
+    {
+        if (_wolfPack != null)
+        {
+            for (int i = 0; i < _wolfPack.Agents.Count; i++)
+            {
+                if (_wolfPack.Agents[i] == wolf) return $"Wolf {i + 1}";
+            }
+        }
+
+        return "Wolf";
+    }
+
+    private void DrawEntityLabel(EntityStatus status, string displayName, Vector3 worldPosition,
+                                 float offset, bool showBar, float barValue)
     {
         if (!Project(worldPosition + Vector3.up * offset, out Vector2 screen)) return;
 
         string text = string.IsNullOrEmpty(status.Action)
-            ? $"{status.DisplayName} [{status.State}]"
-            : $"{status.DisplayName} [{status.State}]\n{status.Action}";
+            ? $"{displayName} [{status.State}]"
+            : $"{displayName} [{status.State}]\n{status.Action}";
 
         Vector2 size = _entityStyle.CalcSize(new GUIContent(text));
         Rect rect = new(screen.x - size.x * 0.5f, screen.y - size.y, size.x, size.y);
@@ -327,24 +382,43 @@ public class SimulationHUD : MonoBehaviour
         GUI.color = savedColor;
     }
 
+    private void DrawWolfSight()
+    {
+        if (_hunter == null) return;
+
+        WolfAgent wolf = _hunter.PerceivedWolf;
+        if (wolf == null) return;
+
+        if (Project(_hunter.transform.position, out Vector2 from) &&
+            Project(wolf.transform.position, out Vector2 to))
+        {
+            DrawLine(from, to, new Color(1f, 0.35f, 0.1f, 0.9f), 2f);
+        }
+
+        if (!Project(_hunter.transform.position + Vector3.up * _hunterLabelHeight,
+                     out Vector2 labelPoint)) return;
+
+        GUI.Label(new Rect(labelPoint.x + 8f, labelPoint.y - 10f, 170f, 18f),
+            $"Wolf spotted: {GetWolfLabel(wolf)}", _zoneStyle);
+    }
+
     private void DrawAlert()
     {
         if (Time.time >= _alertUntil) return;
 
         float progress = Mathf.Clamp01(1f - (_alertUntil - Time.time) / AlertDuration);
-        float radius = Mathf.Lerp(0.4f, 4.5f, progress);
+        float radius = Mathf.Lerp(AlertStartRadius, AlertEndRadius, progress);
         Color color = new(1f, 0.55f, 0.20f, Mathf.Lerp(0.90f, 0.08f, progress));
 
         Vector3 center = _alertHowler;
         center.y = 0.1f;
 
-        const int segments = 32;
         Vector2 previous = default;
         bool hasPrevious = false;
 
-        for (int i = 0; i <= segments; i++)
+        for (int i = 0; i <= AlertSegments; i++)
         {
-            float angle = i * Mathf.PI * 2f / segments;
+            float angle = i * Mathf.PI * 2f / AlertSegments;
             Vector3 worldPoint = center + new Vector3(
                 Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
 
@@ -370,8 +444,10 @@ public class SimulationHUD : MonoBehaviour
 
         Color savedColor = GUI.color;
         GUI.color = new Color(1f, 0.25f, 0.2f, 0.9f);
-        GUI.DrawTexture(new Rect(screen.x - 8f, screen.y - 1f, 16f, 2f), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(screen.x - 1f, screen.y - 8f, 2f, 16f), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(screen.x - LastKnownMarkerRadius, screen.y - 1f,
+            LastKnownMarkerRadius * 2f, 2f), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(screen.x - 1f, screen.y - LastKnownMarkerRadius,
+            2f, LastKnownMarkerRadius * 2f), Texture2D.whiteTexture);
         GUI.color = savedColor;
 
         GUI.Label(new Rect(screen.x + 10f, screen.y - 10f, 110f, 20f), "Last known", _zoneStyle);
@@ -394,6 +470,7 @@ public class SimulationHUD : MonoBehaviour
             builder.AppendLine($"Melee: {FormatCooldown(_hunter.MeleeReady, _hunter.TimeUntilMelee)}   " +
                                $"Arrow: {FormatCooldown(_hunter.RangedReady, _hunter.TimeUntilRanged)}");
             builder.AppendLine($"Safe zone: {(_hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-")}");
+            builder.AppendLine($"Wolf in sight: {(_hunter.PerceivedWolf != null ? GetWolfLabel(_hunter.PerceivedWolf) : "-")}");
         }
 
         builder.AppendLine();
@@ -403,7 +480,7 @@ public class SimulationHUD : MonoBehaviour
         {
             foreach (WolfAgent wolf in _wolfPack.Agents)
             {
-                if (wolf != null) builder.AppendLine($"{wolf.name}: {wolf.CurrentStateName}");
+                if (wolf != null) builder.AppendLine($"{GetWolfLabel(wolf)}: {wolf.CurrentStateName}");
             }
         }
 
@@ -442,5 +519,13 @@ public class SimulationHUD : MonoBehaviour
 
         Vector3 position = _wolfPack.LastKnownHunterPosition.Value;
         return $"({position.x:0.0}, {position.z:0.0})";
+    }
+
+    private sealed class HudEntity
+    {
+        public EntityStatus Status;
+        public bool IsHunter;
+        public Transform Transform;
+        public string Label;
     }
 }

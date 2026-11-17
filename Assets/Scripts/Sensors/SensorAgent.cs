@@ -30,7 +30,9 @@ public class SensorAgent : MonoBehaviour
 
     private bool InRange(Vector3 targetPosition)
     {
-        return Vector3.Distance(targetPosition, transform.position) <= _viewRadius;
+        Vector3 difference = targetPosition - transform.position;
+        difference.y = 0f;
+        return difference.sqrMagnitude <= _viewRadius * _viewRadius;
     }
 
     private bool InViewAngle(Vector3 targetPosition)

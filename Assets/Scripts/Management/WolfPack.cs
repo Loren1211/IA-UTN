@@ -14,35 +14,6 @@ public class WolfPack : MonoBehaviour
 
     public Vector3? LastKnownHunterPosition { get; private set; }
 
-    public bool HasWolfWithin(Vector3 position, float radius)
-    {
-        float sqrRadius = radius * radius;
-
-        foreach (WolfAgent wolf in _agents)
-        {
-            if (wolf == null || !wolf.gameObject.activeInHierarchy) continue;
-
-            Vector3 difference = wolf.transform.position - position;
-            difference.y = 0f;
-            if (difference.sqrMagnitude <= sqrRadius) return true;
-        }
-
-        return false;
-    }
-
-    public bool IsHunting
-    {
-        get
-        {
-            foreach (WolfAgent wolf in _agents)
-            {
-                if (wolf != null && wolf.IsHunting) return true;
-            }
-
-            return false;
-        }
-    }
-
     private void Awake()
     {
         _agents.Clear();

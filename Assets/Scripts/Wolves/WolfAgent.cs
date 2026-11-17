@@ -15,7 +15,6 @@ public class WolfAgent : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float _patrolSpeed = 3.2f;
     [SerializeField] private float _chaseSpeed = 4.2f;
-    [SerializeField] private float _searchSpeed = 3.6f;
     [SerializeField] private float _turnSpeed = 120f;
 
     [Header("Patrol")]
@@ -43,6 +42,10 @@ public class WolfAgent : MonoBehaviour
     [SerializeField] private Collider _collider;
 
     private readonly FiniteStateMachine<WolfStateId> _fsm = new();
+
+    private const float AlertPositionTolerance = 0.5f;
+    private const float AlertBroadcastInterval = 1f;
+
     private Transform _hunter;
     private Vector3 _lastKnownPosition;
     private bool _hasLastKnown;
@@ -55,7 +58,6 @@ public class WolfAgent : MonoBehaviour
 
     public float PatrolSpeed => _patrolSpeed;
     public float ChaseSpeed => _chaseSpeed;
-    public float SearchSpeed => _searchSpeed;
     public float TurnSpeed => _turnSpeed;
     public float CaptureRadius => _captureRadius;
     public float InterceptLeadMax => _interceptLeadMax;
@@ -66,16 +68,22 @@ public class WolfAgent : MonoBehaviour
     public WolfStateId CurrentState => _fsm.CurrentState;
     public string CurrentStateName => _fsm.CurrentStateName;
     public NavAgent NavAgent => _navAgent;
-    public SensorAgent Sensor => _sensor;
-    public WolfPack Pack => _pack;
     public ZoneManager ZoneManager => _zoneManager;
     public Transform CurrentTarget => _hunter;
+    public HunterAgent HunterTarget { get; private set; }
     public bool HasLastKnown => _hasLastKnown;
     public Vector3 LastKnownPosition => _lastKnownPosition;
-    public bool IsHunting => CurrentState != WolfStateId.Patrol;
     public bool IsSeeingTarget => _hunter != null;
 
     private void Awake()
+    {
+        CacheComponents();
+        ClampSettings();
+        ResolveContext();
+        InitializeStates();
+    }
+
+    private void CacheComponents()
     {
         if (_navAgent == null) _navAgent = GetComponent<NavAgent>();
         if (_sensor == null) _sensor = GetComponent<SensorAgent>();
@@ -83,16 +91,30 @@ public class WolfAgent : MonoBehaviour
         if (_visual == null) _visual = GetComponent<WolfVisual>();
         if (_status == null) _status = GetComponent<EntityStatus>();
         if (_threatSensor == null) _threatSensor = GetComponent<ThreatSensor>();
+    }
 
+    private void ClampSettings()
+    {
         if (_patrolSpeed <= 0f) _patrolSpeed = 3.2f;
         if (_chaseSpeed <= 0f) _chaseSpeed = 4.2f;
-        if (_searchSpeed <= 0f) _searchSpeed = 3.6f;
         if (_waypointReachDistance <= 0f) _waypointReachDistance = 1f;
         if (_captureRadius <= 0f) _captureRadius = 1.3f;
         if (_interceptLeadMax <= 0f) _interceptLeadMax = 1f;
         if (_alertDuration <= 0f) _alertDuration = 0.8f;
         if (_searchDuration <= 0f) _searchDuration = 4f;
+    }
 
+    private void ResolveContext()
+    {
+        LevelContext context = LevelContext.Instance;
+        if (context == null) return;
+
+        if (_pack == null) _pack = context.WolfPack;
+        if (_zoneManager == null) _zoneManager = context.ZoneManager;
+    }
+
+    private void InitializeStates()
+    {
         _fsm.AddState(WolfStateId.Patrol, new WolfPatrolState(_fsm, this));
         _fsm.AddState(WolfStateId.Alert, new WolfAlertState(_fsm, this));
         _fsm.AddState(WolfStateId.Chase, new WolfChaseState(_fsm, this));
@@ -119,6 +141,9 @@ public class WolfAgent : MonoBehaviour
 
     private void Start()
     {
+        if (_navAgent != null && Graph.Current != null)
+            _navAgent.SetObstacleMask(Graph.Current.WallMask);
+
         _started = true;
         _fsm.ChangeState(WolfStateId.Patrol);
     }
@@ -150,7 +175,7 @@ public class WolfAgent : MonoBehaviour
         if (_zoneManager != null && _zoneManager.IsInsideSafeZone(hunterPosition)) return;
 
         bool changed = !_hasLastKnown ||
-                       Vector3.Distance(_lastKnownPosition, hunterPosition) > 0.5f;
+                       Vector3.Distance(_lastKnownPosition, hunterPosition) > AlertPositionTolerance;
 
         _lastKnownPosition = hunterPosition;
         _hasLastKnown = true;
@@ -170,6 +195,7 @@ public class WolfAgent : MonoBehaviour
     private void OnPackCleared()
     {
         _hunter = null;
+        HunterTarget = null;
         _hasLastKnown = false;
 
         if (_fsm.CurrentState != WolfStateId.Patrol)
@@ -178,33 +204,33 @@ public class WolfAgent : MonoBehaviour
 
     public bool UpdateDetection()
     {
-        Transform candidate = _threatSensor != null ? _threatSensor.Threat : null;
-        if (candidate == null)
-        {
-            _hunter = null;
-            return false;
-        }
+        IThreatTarget threat = _threatSensor != null ? _threatSensor.ThreatTarget : null;
 
-        IThreatTarget threat = candidate.GetComponentInParent<IThreatTarget>();
         if (threat == null || !threat.IsThreatAlive)
         {
             _hunter = null;
+            HunterTarget = null;
             return false;
         }
+
+        Transform candidate = threat.ThreatTransform;
 
         if (_sensor == null || !_sensor.CanSee(candidate))
         {
             _hunter = null;
+            HunterTarget = null;
             return false;
         }
 
         if (_zoneManager != null && _zoneManager.IsInsideSafeZone(candidate.position))
         {
             _hunter = null;
+            HunterTarget = null;
             return false;
         }
 
         _hunter = candidate;
+        HunterTarget = threat as HunterAgent;
         return true;
     }
 
@@ -222,24 +248,17 @@ public class WolfAgent : MonoBehaviour
 
         if (_pack == null || Time.time < _nextAlertTime) return;
 
-        _nextAlertTime = Time.time + 1f;
+        _nextAlertTime = Time.time + AlertBroadcastInterval;
 
         _raisingAlert = true;
         _pack.RaiseAlert(position, transform.position);
         _raisingAlert = false;
     }
 
-    public void RememberPosition(Vector3 position)
-    {
-        if (_zoneManager != null && _zoneManager.IsInsideSafeZone(position)) return;
-
-        _lastKnownPosition = position;
-        _hasLastKnown = true;
-    }
-
     public void AbandonChase()
     {
         _hunter = null;
+        HunterTarget = null;
         _hasLastKnown = false;
 
         if (_pack != null) _pack.ClearAlert();
@@ -248,7 +267,7 @@ public class WolfAgent : MonoBehaviour
 
     public void CaptureHunter()
     {
-        HunterAgent hunter = _hunter != null ? _hunter.GetComponentInParent<HunterAgent>() : null;
+        HunterAgent hunter = HunterTarget;
         if (hunter == null || hunter.IsDead) return;
         if (_zoneManager != null && _zoneManager.IsInsideSafeZone(hunter.transform.position)) return;
 
@@ -290,6 +309,7 @@ public class WolfAgent : MonoBehaviour
     public void ForgetTarget()
     {
         _hunter = null;
+        HunterTarget = null;
         _hasLastKnown = false;
     }
 
@@ -316,11 +336,5 @@ public class WolfAgent : MonoBehaviour
     {
         if (_waypoints == null || _waypoints.Length == 0) return;
         _waypointIndex = (_waypointIndex + 1) % _waypoints.Length;
-    }
-
-    public void SetWaypoints(Transform[] waypoints)
-    {
-        _waypoints = waypoints;
-        _waypointIndex = 0;
     }
 }

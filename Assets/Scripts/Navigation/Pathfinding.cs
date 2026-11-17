@@ -5,6 +5,8 @@ public static class Pathfinding
 {
     public enum HeuristicMethod { Distance, Manhattan }
 
+    private const float MinNodeOffset = 0.01f;
+
     public static float GetHeuristic(Vector3 posA, Vector3 posB, HeuristicMethod method)
     {
         return method switch
@@ -49,7 +51,7 @@ public static class Pathfinding
         };
 
         Vector3 endPosition = endNode.transform.position;
-        float heuristicScale = 1f / Mathf.Max(0.01f, Graph.Current.NodeOffset);
+        float heuristicScale = 1f / Mathf.Max(MinNodeOffset, Graph.Current.NodeOffset);
 
         while (frontier.Count != 0)
         {

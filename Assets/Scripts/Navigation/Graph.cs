@@ -82,11 +82,11 @@ public class Graph : MonoBehaviour
 
                 Node node = _nodePrefab != null
                     ? Instantiate(_nodePrefab, transform)
-                    : new GameObject($"Node {x},{y}").AddComponent<Node>();
+                    : new GameObject($"Nodo {x},{y}").AddComponent<Node>();
 
                 node.transform.SetParent(transform);
                 node.transform.position = cellCenter + Vector3.up * 0.1f;
-                node.name = $"Node {x},{y}";
+                node.name = $"Nodo {x},{y}";
                 node.Setup(new Coordinates(x, y));
                 node.Zone = GetZone(node.transform.position);
 

@@ -2,6 +2,13 @@ using UnityEngine;
 
 public abstract class HunterState : State<HunterStateId>
 {
+    protected const float DestinationRetrySeconds = 1f;
+    protected const float SafeZoneCenterStopDistance = 0.6f;
+    protected const float FallbackStopDistance = 0.5f;
+    protected const float ExitArrivalRadius = 1.5f;
+    protected const float ExitArrivalDelay = 0.3f;
+    protected const float ExitProgressDistance = 30f;
+
     protected readonly HunterAgent Hunter;
 
     protected HunterState(FiniteStateMachine<HunterStateId> fsm, HunterAgent hunter, string name)
@@ -10,6 +17,7 @@ public abstract class HunterState : State<HunterStateId>
         Hunter = hunter;
     }
 
+    // Priority: Dead > Flee > Exit > Gather > Attack > Search.
     protected bool CheckGlobalTransitions()
     {
         if (Hunter.IsDead)
@@ -19,25 +27,19 @@ public abstract class HunterState : State<HunterStateId>
             return true;
         }
 
-        if (Hunter.ShouldPrioritizeExit())
+        if (Hunter.CanFlee && !Hunter.IsInSafeZone)
         {
-            if (_fsm.CurrentState != HunterStateId.Exit)
+            if (_fsm.CurrentState != HunterStateId.Flee)
             {
-                _fsm.ChangeState(HunterStateId.Exit);
+                _fsm.ChangeState(HunterStateId.Flee);
                 return true;
             }
 
             return false;
         }
 
-        if (_fsm.CurrentState == HunterStateId.Dead || _fsm.CurrentState == HunterStateId.Flee)
+        if (_fsm.CurrentState == HunterStateId.Flee)
             return false;
-
-        if (Hunter.IsHunted)
-        {
-            _fsm.ChangeState(HunterStateId.Flee);
-            return true;
-        }
 
         if (Hunter.Gathers >= Hunter.RequiredGathers && _fsm.CurrentState != HunterStateId.Exit)
         {
@@ -94,23 +96,20 @@ public class SearchState : HunterState
             Vector3 predictedPosition = Hunter.GetPredictedPosition(liveBoid, Hunter.MoveSpeed);
             Hunter.MoveDirect(predictedPosition, Hunter.MoveSpeed, Hunter.MeleeStopDistance);
             Hunter.SetActionProgress(0f, "Waiting for attack cooldown");
-            Hunter.TrySpawnInterestPoint();
             return;
         }
 
         if (!Hunter.NavAgent.IsMoving && Time.time >= _nextDestinationTime)
         {
             ChooseDestination();
-            _nextDestinationTime = Time.time + 1f;
+            _nextDestinationTime = Time.time + DestinationRetrySeconds;
         }
-
-        Hunter.TrySpawnInterestPoint();
     }
 
     private void ChooseDestination()
     {
-        if (Hunter.NavigateToRandomCotoNode(Hunter.MoveSpeed)) return;
-        Hunter.NavigateTo(Hunter.CotoCenter, Hunter.MoveSpeed);
+        if (Hunter.NavigateToRandomHuntingGroundNode(Hunter.MoveSpeed)) return;
+        Hunter.NavigateTo(Hunter.HuntingGroundCenter, Hunter.MoveSpeed);
     }
 }
 
@@ -292,8 +291,12 @@ public class GatherState : HunterState
 
 public class FleeState : HunterState
 {
+    private const float StuckTimeout = 2.5f;
+
     private SafeZone _safeZone;
     private float _waitTimer;
+    private float _stuckTimer;
+
     public FleeState(FiniteStateMachine<HunterStateId> fsm, HunterAgent hunter)
         : base(fsm, hunter, "Flee") { }
 
@@ -305,16 +308,17 @@ public class FleeState : HunterState
         _safeZone = Hunter.FindClosestSafeZone();
         Hunter.SetSelectedSafeZone(_safeZone);
         _waitTimer = 0f;
+        _stuckTimer = 0f;
 
         if (_safeZone == null)
         {
+            Hunter.DeferFlee(DestinationRetrySeconds);
             _fsm.ChangeState(HunterStateId.Search);
             return;
         }
 
         Vector3 center = _safeZone.transform.position;
-        if (!Hunter.NavigateTo(center, Hunter.FleeSpeed))
-            Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.4f);
+        MoveToSafeZone(center);
 
         Hunter.SetActionProgress(0f, "Fleeing");
     }
@@ -325,6 +329,7 @@ public class FleeState : HunterState
 
         if (_safeZone == null)
         {
+            Hunter.DeferFlee(DestinationRetrySeconds);
             _fsm.ChangeState(HunterStateId.Search);
             return;
         }
@@ -334,10 +339,15 @@ public class FleeState : HunterState
 
         if (!inside)
         {
-            if (!Hunter.NavAgent.IsMoving)
+            if (!Hunter.NavAgent.IsMoving) MoveToSafeZone(center);
+
+            _stuckTimer = Hunter.NavAgent.IsMoving ? 0f : _stuckTimer + Time.deltaTime;
+
+            if (_stuckTimer >= StuckTimeout)
             {
-                if (Hunter.NavigateTo(center, Hunter.FleeSpeed)) return;
-                Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.4f);
+                Hunter.DeferFlee(DestinationRetrySeconds);
+                _fsm.ChangeState(HunterStateId.Search);
+                return;
             }
 
             Hunter.SetActionProgress(0f, "Fleeing");
@@ -347,18 +357,15 @@ public class FleeState : HunterState
         Vector3 toCenter = center - Hunter.transform.position;
         toCenter.y = 0f;
 
-        if (toCenter.magnitude > 0.6f)
+        if (toCenter.magnitude > SafeZoneCenterStopDistance)
         {
-            Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.5f);
+            Hunter.MoveDirect(center, Hunter.FleeSpeed, SafeZoneCenterStopDistance);
             Hunter.SetActionProgress(0f, "Fleeing");
             return;
         }
 
         Hunter.Stop();
         _waitTimer += Time.deltaTime;
-
-        bool wolvesHunting = Hunter.WolfPack != null && Hunter.WolfPack.IsHunting;
-        if (wolvesHunting) _waitTimer = 0f;
 
         Hunter.SetActionProgress(Mathf.Clamp01(_waitTimer / Hunter.SafeZoneWaitTime),
             "Waiting in safe zone");
@@ -368,6 +375,13 @@ public class FleeState : HunterState
         _fsm.ChangeState(Hunter.Gathers >= Hunter.RequiredGathers
             ? HunterStateId.Exit
             : HunterStateId.Search);
+    }
+
+    private void MoveToSafeZone(Vector3 center)
+    {
+        if (Hunter.NavigateTo(center, Hunter.FleeSpeed)) return;
+        if (Hunter.Sensor.HasLineOfSight(center))
+            Hunter.MoveDirect(center, Hunter.FleeSpeed, FallbackStopDistance);
     }
 
     public override void Exit()
@@ -399,9 +413,7 @@ public class ExitState : HunterState
             return;
         }
 
-        if (!Hunter.NavigateTo(Hunter.ExitPoint.position, Hunter.MoveSpeed))
-            Hunter.MoveDirect(Hunter.ExitPoint.position, Hunter.MoveSpeed, 0.5f);
-
+        MoveToExit();
         Hunter.SetActionProgress(0f, "Moving to exit");
     }
 
@@ -410,7 +422,7 @@ public class ExitState : HunterState
         if (_arrived)
         {
             _arrivedTimer += Time.deltaTime;
-            if (_arrivedTimer < 0.3f) return;
+            if (_arrivedTimer < ExitArrivalDelay) return;
 
             Hunter.RespawnAtStart();
             _fsm.ChangeState(HunterStateId.Search);
@@ -427,19 +439,26 @@ public class ExitState : HunterState
 
         float distance = Vector3.Distance(Hunter.transform.position, Hunter.ExitPoint.position);
 
-        if (distance > 1.5f && !Hunter.NavAgent.IsMoving)
-            Hunter.MoveDirect(Hunter.ExitPoint.position, Hunter.MoveSpeed, 0.5f);
+        if (distance > ExitArrivalRadius && !Hunter.NavAgent.IsMoving) MoveToExit();
 
-        Hunter.SetActionProgress(Mathf.Clamp01(1f - distance / 30f), "Moving to exit");
+        Hunter.SetActionProgress(Mathf.Clamp01(1f - distance / ExitProgressDistance), "Moving to exit");
 
-        if (distance > 1.5f) return;
+        if (distance > ExitArrivalRadius) return;
 
         _arrived = true;
         _arrivedTimer = 0f;
         Hunter.Stop();
         Hunter.SetVisible(false);
         Hunter.SetActionProgress(1f, "At the exit");
-        Hunter.NotifyEscaped();
+        Hunter.RegisterEscape();
+    }
+
+    private void MoveToExit()
+    {
+        Vector3 exit = Hunter.ExitPoint.position;
+        if (Hunter.NavigateTo(exit, Hunter.MoveSpeed)) return;
+        if (Hunter.Sensor.HasLineOfSight(exit))
+            Hunter.MoveDirect(exit, Hunter.MoveSpeed, FallbackStopDistance);
     }
 }
 

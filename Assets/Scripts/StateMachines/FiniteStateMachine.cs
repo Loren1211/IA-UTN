@@ -32,7 +32,8 @@ public class FiniteStateMachine<T>
         _currentState = nextState;
         _currentState.Enter();
 
-        StateChanged?.Invoke(id);
+        if (EqualityComparer<T>.Default.Equals(CurrentState, id))
+            StateChanged?.Invoke(id);
     }
 
     public void Update()

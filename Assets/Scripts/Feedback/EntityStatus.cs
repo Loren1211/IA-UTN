@@ -9,7 +9,6 @@ public class EntityStatus : MonoBehaviour
     private string _action = "";
     private float _progress;
 
-    public event Action<EntityStatus> Changed;
     public event Action<EntityStatus> StateChanged;
 
     public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
@@ -28,7 +27,6 @@ public class EntityStatus : MonoBehaviour
         if (_state == state) return;
 
         _state = state;
-        Changed?.Invoke(this);
         StateChanged?.Invoke(this);
     }
 
@@ -37,18 +35,12 @@ public class EntityStatus : MonoBehaviour
         if (_action == action) return;
 
         _action = action;
-        Changed?.Invoke(this);
     }
 
     public void SetAction(string action, float progress)
     {
         _progress = Mathf.Clamp01(progress);
         SetAction(action);
-    }
-
-    public void SetProgress(float progress)
-    {
-        _progress = Mathf.Clamp01(progress);
     }
 
     public void SetColor(Color color)

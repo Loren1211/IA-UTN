@@ -16,6 +16,7 @@ public class Agent : MonoBehaviour
 
     [Header("Flocking values")]
     [SerializeField] private float _separationRadius = 2f;
+    [SerializeField] private float _alignmentRadius = 4f;
     [SerializeField] private float _visionRadius = 6f;
     [SerializeField, Range(0f, 3f)] private float _separationWeight = 1.5f;
     [SerializeField, Range(0f, 3f)] private float _cohesionWeight = 1f;
@@ -25,7 +26,10 @@ public class Agent : MonoBehaviour
     [SerializeField] private Transform target;
     [SerializeField] private Agent targetAgent;
 
+    private const float MinPredictionSpeed = 0.01f;
+
     private Vector3 _velocity;
+    private Vector3 _externalTargetVelocity;
     private bool _wrapAtBounds;
     private BoidManager _boidManager;
 
@@ -48,32 +52,32 @@ public class Agent : MonoBehaviour
     private void Update()
     {
         float fixedHeight = transform.position.y;
-        Vector3 acceleration = Vector3.zero;
+        Vector3 steering = Vector3.zero;
 
         switch (_currentMode)
         {
             case SteeringModes.Flocking:
-                acceleration = CalculateFlocking();
+                steering = CalculateFlocking();
                 break;
             case SteeringModes.Pursuit when targetAgent != null:
-                acceleration = CalculatePursuit(targetAgent);
+                steering = CalculatePursuit(targetAgent);
                 break;
-            case SteeringModes.Evade when targetAgent != null:
-                acceleration = CalculateEvade(targetAgent);
+            case SteeringModes.Evade when target != null:
+                steering = CalculateEvade(target.position, _externalTargetVelocity);
                 break;
             case SteeringModes.Seek:
             case SteeringModes.Flee:
             case SteeringModes.Arrive:
-                if (target != null) acceleration = GetCurrentSteeringMode();
+                if (target != null) steering = GetCurrentSteeringMode();
                 break;
         }
 
         if (_currentMode != SteeringModes.Flocking)
-            acceleration += CalculateSeparation(FlockAgents, _separationRadius) * _separationWeight;
+            steering += CalculateSeparation(FlockAgents, _separationRadius) * _separationWeight;
 
-        acceleration.y = 0f;
+        steering.y = 0f;
         _velocity.y = 0f;
-        _velocity += acceleration * Time.deltaTime;
+        _velocity += steering;
         _velocity.y = 0f;
         _velocity = Vector3.ClampMagnitude(_velocity, _maxSpeed);
 
@@ -124,10 +128,11 @@ public class Agent : MonoBehaviour
         target = newTarget;
     }
 
-    public void SetFleeTarget(Transform newTarget)
+    public void SetEvadeTarget(Transform newTarget, Vector3 targetVelocity)
     {
-        _currentMode = SteeringModes.Flee;
+        _currentMode = SteeringModes.Evade;
         target = newTarget;
+        _externalTargetVelocity = targetVelocity;
     }
 
     #region Flocking
@@ -135,7 +140,7 @@ public class Agent : MonoBehaviour
     private Vector3 CalculateFlocking()
     {
         return CalculateSeparation(FlockAgents, _separationRadius) * _separationWeight
-             + CalculateAlignment(FlockAgents, _viewRadius) * _alignmentWeight
+             + CalculateAlignment(FlockAgents, _alignmentRadius) * _alignmentWeight
              + CalculateCohesion(FlockAgents, _viewRadius) * _cohesionWeight;
     }
 
@@ -211,13 +216,19 @@ public class Agent : MonoBehaviour
 
     private Vector3 CalculatePursuit(Agent targetToPursue) => CalculateSeek(GetFuturePosition(targetToPursue));
 
-    private Vector3 CalculateEvade(Agent targetToEvade) => CalculateFlee(GetFuturePosition(targetToEvade));
+    private Vector3 CalculateEvade(Vector3 targetPosition, Vector3 targetVelocity)
+    {
+        float distanceToTarget = (targetPosition - transform.position).magnitude;
+        float denominator = _maxSpeed + targetVelocity.magnitude;
+        float predictedTime = denominator > MinPredictionSpeed ? distanceToTarget / denominator : 0f;
+        return CalculateFlee(targetPosition + targetVelocity * predictedTime);
+    }
 
     private Vector3 GetFuturePosition(Agent targetToPredict)
     {
         float distanceToTarget = (targetToPredict.transform.position - transform.position).magnitude;
         float denominator = _maxSpeed + targetToPredict.Velocity.magnitude;
-        float predictedTime = denominator > 0.01f ? distanceToTarget / denominator : 0f;
+        float predictedTime = denominator > MinPredictionSpeed ? distanceToTarget / denominator : 0f;
         return targetToPredict.transform.position + targetToPredict.Velocity * predictedTime;
     }
 
@@ -264,7 +275,7 @@ public class Agent : MonoBehaviour
 
     private Vector3 CalculateSteering(Vector3 desired)
     {
-        return Vector3.ClampMagnitude(desired - _velocity, _maxForce);
+        return Vector3.ClampMagnitude(desired - _velocity, _maxForce * Time.deltaTime);
     }
 
     #endregion
@@ -273,6 +284,9 @@ public class Agent : MonoBehaviour
     {
         Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, _separationRadius);
+
+        Gizmos.color = new Color(0.3f, 1f, 0.4f, 0.6f);
+        Gizmos.DrawWireSphere(transform.position, _alignmentRadius);
 
         Gizmos.color = new Color(0.2f, 0.9f, 1f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, _viewRadius);

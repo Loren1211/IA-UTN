@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,8 +34,9 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _fleeSpeed = 6f;
 
-    [Header("Threat")]
-    [SerializeField] private float _wolfDangerRadius = 3f;
+    [Header("Perception")]
+    [SerializeField] private float _wolfSightRadius = 7.15f;
+    [SerializeField] private float _wolfCheckInterval = 0.1f;
 
     [Header("References")]
     [SerializeField] private Transform _startPoint;
@@ -53,14 +53,21 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     private readonly FiniteStateMachine<HunterStateId> _fsm = new();
 
+    private const float VelocityTolerance = 2f;
+    private const float MinPredictionSpeed = 0.01f;
+
     private int _gathers;
     private float _nextMeleeTime;
     private float _nextRangedTime;
     private Vector3 _lastPosition;
     private bool _isDead;
+    private bool _wasInSafeZone;
+    private float _nextFleeTime;
+    private float _nextWolfCheckTime;
     private Boid _attackTarget;
     private Boid _gatherTarget;
     private SafeZone _selectedSafeZone;
+    private WolfAgent _perceivedWolf;
 
     public int RequiredGathers => _requiredGathers;
     public float RespawnTime => _respawnTime;
@@ -74,7 +81,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public float GatherRange => _gatherRange;
     public float MoveSpeed => _moveSpeed;
     public float FleeSpeed => _fleeSpeed;
-    public float WolfDangerRadius => _wolfDangerRadius;
+    public float WolfSightRadius => _wolfSightRadius;
 
     public int Gathers => _gathers;
     public int Escapes { get; private set; }
@@ -88,81 +95,95 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public HunterStateId CurrentState => _fsm.CurrentState;
     public string CurrentStateName => _fsm.CurrentStateName;
     public Vector3 Velocity { get; private set; }
-
-    public event Action Died;
-    public event Action Escaped;
     public Boid AttackTarget => _attackTarget;
     public Boid GatherTarget => _gatherTarget;
     public SafeZone SelectedSafeZone => _selectedSafeZone;
     public NavAgent NavAgent => _navAgent;
     public SensorAgent Sensor => _sensor;
-    public Transform StartPoint => _startPoint;
     public Transform ExitPoint => _exitPoint;
     public Transform ThreatTransform => transform;
     public bool IsThreatAlive => !_isDead;
-    public BoidManager BoidManager => _boidManager;
-    public ZoneManager ZoneManager => _zoneManager;
-    public WolfPack WolfPack => _wolfPack;
-    public Vector3 CotoCenter => global::Bounds.Instance != null
-        ? global::Bounds.Instance.transform.position
+    public Vector3 HuntingGroundCenter => ActiveBounds != null
+        ? ActiveBounds.transform.position
         : Vector3.zero;
+
+    private global::Bounds ActiveBounds
+    {
+        get
+        {
+            if (global::Bounds.Instance != null) return global::Bounds.Instance;
+
+            LevelContext context = LevelContext.Instance;
+            return context != null ? context.Bounds : null;
+        }
+    }
 
     private IReadOnlyList<Boid> Boids =>
         _boidManager != null ? _boidManager.Boids : System.Array.Empty<Boid>();
 
-    public float CurrentActionProgress { get; private set; }
     public string CurrentActionLabel { get; private set; } = "";
 
-    public bool IsInsideCoto => global::Bounds.Instance != null &&
-                                global::Bounds.Instance.Contains(transform.position);
+    public bool IsInsideHuntingGround => ActiveBounds != null &&
+                                         ActiveBounds.Contains(transform.position);
 
     public bool IsInSafeZone => _zoneManager != null && _zoneManager.IsInsideSafeZone(transform.position);
 
-    public bool IsHunted => _wolfPack != null &&
-                            (_wolfPack.IsHunting ||
-                             _wolfPack.HasWolfWithin(transform.position, _wolfDangerRadius));
+    public WolfAgent PerceivedWolf => _perceivedWolf;
+    public bool SeesWolf => _perceivedWolf != null;
+    public bool CanFlee => SeesWolf && Time.time >= _nextFleeTime;
 
-    public bool ShouldPrioritizeExit()
+    public void DeferFlee(float seconds)
     {
-        if (_gathers < _requiredGathers || _exitPoint == null) return false;
-
-        float exitDistance = FlatDistance(transform.position, _exitPoint.position);
-        if (_zoneManager == null) return true;
-
-        float safeDistance = float.MaxValue;
-
-        foreach (SafeZone zone in _zoneManager.SafeZones)
-        {
-            if (zone == null) continue;
-            safeDistance = Mathf.Min(safeDistance, FlatDistance(transform.position, zone.Center));
-        }
-
-        return exitDistance < safeDistance;
-    }
-
-    private static float FlatDistance(Vector3 a, Vector3 b)
-    {
-        a.y = 0f;
-        b.y = 0f;
-        return Vector3.Distance(a, b);
+        _nextFleeTime = Time.time + seconds;
     }
 
     public bool HasVisibleDeadBoid => GetClosestVisibleDeadBoid() != null;
 
     private void Awake()
     {
+        CacheComponents();
+        ClampSettings();
+        ResolveContext();
+        InitializeStates();
+
+        _lastPosition = transform.position;
+    }
+
+    private void CacheComponents()
+    {
         if (_navAgent == null) _navAgent = GetComponent<NavAgent>();
         if (_sensor == null) _sensor = GetComponent<SensorAgent>();
         if (_collider == null) _collider = GetComponent<Collider>();
         if (_visual == null) _visual = GetComponent<HunterVisual>();
         if (_status == null) _status = GetComponent<EntityStatus>();
+    }
+
+    private void ClampSettings()
+    {
         if (_meleeDamage <= 0f) _meleeDamage = 1f;
         if (_rangedDamage <= 0f) _rangedDamage = 1.5f;
         if (_meleeCooldown <= 0f) _meleeCooldown = 0.3f;
         if (_rangedCooldown <= 0f) _rangedCooldown = 1f;
         if (_meleeStopDistance <= 0f) _meleeStopDistance = 1.3f;
-        if (_wolfDangerRadius <= 0f) _wolfDangerRadius = 3f;
+        if (_wolfSightRadius <= 0f) _wolfSightRadius = 7.15f;
+        if (_wolfCheckInterval <= 0f) _wolfCheckInterval = 0.1f;
+    }
 
+    private void ResolveContext()
+    {
+        LevelContext context = LevelContext.Instance;
+        if (context == null) return;
+
+        if (_startPoint == null) _startPoint = context.StartPoint;
+        if (_exitPoint == null) _exitPoint = context.ExitPoint;
+        if (_boidManager == null) _boidManager = context.BoidManager;
+        if (_zoneManager == null) _zoneManager = context.ZoneManager;
+        if (_wolfPack == null) _wolfPack = context.WolfPack;
+        if (_interestSpawner == null) _interestSpawner = context.InterestPointSpawner;
+    }
+
+    private void InitializeStates()
+    {
         _fsm.AddState(HunterStateId.Search, new SearchState(_fsm, this));
         _fsm.AddState(HunterStateId.Attack, new AttackState(_fsm, this));
         _fsm.AddState(HunterStateId.Gather, new GatherState(_fsm, this));
@@ -171,8 +192,6 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _fsm.AddState(HunterStateId.Dead, new DeadState(_fsm, this));
 
         _fsm.StateChanged += OnStateChanged;
-
-        _lastPosition = transform.position;
     }
 
     private void Start()
@@ -190,15 +209,74 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     private void Update()
     {
+        UpdateWolfPerception();
+        UpdateSafeZonePresence();
+
+        if (!_isDead && IsInsideHuntingGround) TrySpawnInterestPoint();
+
         _fsm.Update();
         UpdateHuntColor();
     }
+
+    private void UpdateWolfPerception()
+    {
+        if (_isDead || _sensor == null || !_sensor.enabled)
+        {
+            _perceivedWolf = null;
+            return;
+        }
+
+        if (Time.time < _nextWolfCheckTime) return;
+        _nextWolfCheckTime = Time.time + _wolfCheckInterval;
+
+        _perceivedWolf = FindClosestVisibleWolf();
+    }
+
+    private WolfAgent FindClosestVisibleWolf()
+    {
+        if (_sensor == null || _wolfPack == null) return null;
+
+        WolfAgent closest = null;
+        float bestDistance = float.MaxValue;
+        float sqrSightRadius = _wolfSightRadius * _wolfSightRadius;
+
+        foreach (WolfAgent wolf in _wolfPack.Agents)
+        {
+            if (wolf == null || !wolf.gameObject.activeInHierarchy) continue;
+
+            Vector3 difference = wolf.transform.position - transform.position;
+            difference.y = 0f;
+            if (difference.sqrMagnitude > sqrSightRadius) continue;
+
+            if (!_sensor.CanSee(wolf.transform)) continue;
+
+            float distance = difference.sqrMagnitude;
+            if (distance >= bestDistance) continue;
+
+            bestDistance = distance;
+            closest = wolf;
+        }
+
+        return closest;
+    }
+
+    private void UpdateSafeZonePresence()
+    {
+        bool inside = IsInSafeZone;
+        if (inside == _wasInSafeZone) return;
+
+        _wasInSafeZone = inside;
+        if (!inside || _wolfPack == null) return;
+
+        _wolfPack.ClearAlert();
+    }
+
 
     private void LateUpdate()
     {
         float deltaTime = Time.deltaTime;
         Vector3 delta = transform.position - _lastPosition;
-        float maxStep = _fleeSpeed * deltaTime * 2f;
+        float maxStep = _fleeSpeed * deltaTime * VelocityTolerance;
 
         Velocity = deltaTime <= 0f || delta.magnitude > maxStep
             ? Vector3.zero
@@ -226,10 +304,9 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     public void SetActionProgress(float progress, string label)
     {
-        CurrentActionProgress = Mathf.Clamp01(progress);
         CurrentActionLabel = label;
 
-        if (_status != null) _status.SetAction(label, CurrentActionProgress);
+        if (_status != null) _status.SetAction(label, Mathf.Clamp01(progress));
     }
 
     public Boid GetClosestVisibleLiveBoid()
@@ -327,7 +404,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         return NavigateToNode(Graph.Current.GetClosestNode(worldPosition), speed);
     }
 
-    public bool NavigateToRandomCotoNode(float speed)
+    public bool NavigateToRandomHuntingGroundNode(float speed)
     {
         if (Graph.Current == null) return false;
         return NavigateToNode(Graph.Current.GetRandomNode(NodeZone.HuntingGround), speed);
@@ -338,7 +415,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         Vector3 targetPosition = target.transform.position;
         float distance = Vector3.Distance(transform.position, targetPosition);
         float denominator = speed + target.Velocity.magnitude;
-        float predictedTime = denominator > 0.01f ? distance / denominator : 0f;
+        float predictedTime = denominator > MinPredictionSpeed ? distance / denominator : 0f;
         return targetPosition + target.Velocity * predictedTime;
     }
 
@@ -410,13 +487,11 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_visual != null) _visual.SetFleeing(false);
         SetVisible(false);
         SetActionProgress(0f, "Dead");
-        Died?.Invoke();
     }
 
-    public void NotifyEscaped()
+    public void RegisterEscape()
     {
         Escapes++;
-        Escaped?.Invoke();
     }
 
     public void RespawnAtStart()
@@ -432,6 +507,10 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _gathers = 0;
         _nextMeleeTime = 0f;
         _nextRangedTime = 0f;
+        _nextFleeTime = 0f;
+        _nextWolfCheckTime = 0f;
+        _perceivedWolf = null;
+        _wasInSafeZone = false;
         _attackTarget = null;
         _gatherTarget = null;
         _selectedSafeZone = null;

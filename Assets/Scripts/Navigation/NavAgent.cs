@@ -9,6 +9,10 @@ public class NavAgent : MonoBehaviour
     [SerializeField] private LayerMask _wallMask;
     [SerializeField] private float _pathClearance = 0.5f;
 
+    private const float MinPathDistance = 0.01f;
+    private const float MinStopDistance = 0.05f;
+    private const float DirectionEpsilon = 0.0001f;
+
     private readonly List<Node> _path = new();
     private bool _hasDirectTarget;
     private Vector3 _directTarget;
@@ -60,7 +64,8 @@ public class NavAgent : MonoBehaviour
         }
 
         if (_path.Count > 0 &&
-            Vector3.Distance(transform.position, _path[0].transform.position) <= _nodeReachDistance)
+            SqrDistance(transform.position, _path[0].transform.position) <=
+            _nodeReachDistance * _nodeReachDistance)
         {
             _path.RemoveAt(0);
         }
@@ -103,7 +108,7 @@ public class NavAgent : MonoBehaviour
 
         Vector3 direction = to - from;
         float distance = direction.magnitude;
-        if (distance <= 0.01f) return true;
+        if (distance <= MinPathDistance) return true;
 
         return !Physics.SphereCast(from, _pathClearance, direction / distance, out _,
                                    distance, _wallMask, QueryTriggerInteraction.Ignore);
@@ -113,7 +118,7 @@ public class NavAgent : MonoBehaviour
     {
         _path.Clear();
         _directTarget = target;
-        _directStopDistance = Mathf.Max(0.05f, stopDistance);
+        _directStopDistance = Mathf.Max(MinStopDistance, stopDistance);
         _hasDirectTarget = true;
         SetSpeed(speed);
     }
@@ -131,7 +136,7 @@ public class NavAgent : MonoBehaviour
             Vector3 target = _path[0].transform.position;
             target.y = transform.position.y;
 
-            if (Vector3.Distance(transform.position, target) <= _nodeReachDistance)
+            if (SqrDistance(transform.position, target) <= _nodeReachDistance * _nodeReachDistance)
             {
                 _path.RemoveAt(0);
                 return;
@@ -146,7 +151,7 @@ public class NavAgent : MonoBehaviour
         Vector3 directTarget = _directTarget;
         directTarget.y = transform.position.y;
 
-        if (Vector3.Distance(transform.position, directTarget) <= _directStopDistance)
+        if (SqrDistance(transform.position, directTarget) <= _directStopDistance * _directStopDistance)
         {
             _hasDirectTarget = false;
             return;
@@ -159,11 +164,18 @@ public class NavAgent : MonoBehaviour
     {
         Vector3 direction = target - transform.position;
         direction.y = 0f;
-        if (direction.sqrMagnitude < 0.0001f) return;
+        if (direction.sqrMagnitude < DirectionEpsilon) return;
 
         transform.position = Vector3.MoveTowards(transform.position, target, _speed * Time.deltaTime);
         transform.forward = Vector3.Slerp(transform.forward, direction.normalized,
             Mathf.Clamp01(_rotationSpeed * Time.deltaTime));
+    }
+
+    private static float SqrDistance(Vector3 a, Vector3 b)
+    {
+        Vector3 difference = a - b;
+        difference.y = 0f;
+        return difference.sqrMagnitude;
     }
 
     private void OnDrawGizmos()

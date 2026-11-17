@@ -113,11 +113,12 @@ public class Boid : MonoBehaviour
 
     private void UpdateInterestAndThreat()
     {
-        Transform threat = _threatSensor != null ? _threatSensor.Threat : null;
+        IThreatTarget threat = _threatSensor != null ? _threatSensor.ThreatTarget : null;
+        if (threat != null && !threat.IsThreatAlive) threat = null;
 
         if (threat != null)
         {
-            Vector3 toThreat = threat.position - transform.position;
+            Vector3 toThreat = threat.ThreatTransform.position - transform.position;
             toThreat.y = 0f;
 
             if (!_isFleeing && toThreat.sqrMagnitude <= _threatRadius * _threatRadius)
@@ -133,7 +134,7 @@ public class Boid : MonoBehaviour
         if (_isFleeing && threat != null)
         {
             IsInterested = false;
-            _agent.SetFleeTarget(threat);
+            _agent.SetEvadeTarget(threat.ThreatTransform, threat.Velocity);
             return;
         }
 

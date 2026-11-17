@@ -7,11 +7,12 @@ public class ThreatSensor : MonoBehaviour
     [SerializeField] private float _checkInterval = 0.2f;
 
     private readonly Collider[] _buffer = new Collider[16];
-    private Transform _threat;
+    private IThreatTarget _threatTarget;
     private float _nextCheckTime;
 
-    public Transform Threat => _threat;
-    public bool HasThreat => _threat != null;
+    public IThreatTarget ThreatTarget => _threatTarget;
+    public Transform Threat => _threatTarget != null ? _threatTarget.ThreatTransform : null;
+    public bool HasThreat => _threatTarget != null;
     public float ReleaseRadius => _releaseRadius;
 
     private void Awake()
@@ -31,7 +32,7 @@ public class ThreatSensor : MonoBehaviour
         if (Time.time < _nextCheckTime) return;
         _nextCheckTime = Time.time + _checkInterval;
 
-        Transform closest = null;
+        IThreatTarget closest = null;
         float bestDistance = _releaseRadius * _releaseRadius;
 
         int count = Physics.OverlapSphereNonAlloc(transform.position, _releaseRadius, _buffer,
@@ -53,9 +54,9 @@ public class ThreatSensor : MonoBehaviour
             if (distance > bestDistance) continue;
 
             bestDistance = distance;
-            closest = targetTransform;
+            closest = target;
         }
 
-        _threat = closest;
+        _threatTarget = closest;
     }
 }
