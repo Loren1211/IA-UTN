@@ -251,6 +251,7 @@ MonoBehaviour:
   _navAgent: {fileID: 3598665042913447438}
   _sensor: {fileID: 5869318828193837172}
   _visual: {fileID: 2961314300470791547}
+  _fovVisual: {fileID: 7262247685835333564}
   _status: {fileID: 7723718959903756945}
   _collider: {fileID: 8283230545739471090}
 --- !u!114 &7723718959903756945

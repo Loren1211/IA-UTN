@@ -27,6 +27,7 @@ public class Agent : MonoBehaviour
     [SerializeField] private Agent targetAgent;
 
     private const float MinPredictionSpeed = 0.01f;
+    private const float MinRandomDirectionSqr = 0.01f;
 
     private Vector3 _velocity;
     private Vector3 _externalTargetVelocity;
@@ -45,7 +46,13 @@ public class Agent : MonoBehaviour
 
     private void Start()
     {
-        Vector3 randomVector = new(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
+        Vector3 randomVector;
+        do
+        {
+            randomVector = new(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
+        }
+        while (randomVector.sqrMagnitude < MinRandomDirectionSqr);
+
         _velocity = randomVector.normalized * _maxSpeed;
     }
 
@@ -110,7 +117,13 @@ public class Agent : MonoBehaviour
     {
         transform.position = position;
 
-        Vector3 randomVector = new(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
+        Vector3 randomVector;
+        do
+        {
+            randomVector = new(Random.Range(-1f, 1f), 0f, Random.Range(-1f, 1f));
+        }
+        while (randomVector.sqrMagnitude < MinRandomDirectionSqr);
+
         _velocity = randomVector.normalized * _maxSpeed;
     }
 

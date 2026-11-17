@@ -26,7 +26,7 @@ public class Graph : MonoBehaviour
     private readonly List<Node> _allNodes = new();
     private readonly Dictionary<Node, List<Node>> _neighbors = new();
     private readonly Dictionary<NodeZone, List<Node>> _nodesByZone = new();
-    private static readonly List<Node> EmptyNeighbors = new();
+    private static readonly IReadOnlyList<Node> EmptyNeighbors = System.Array.Empty<Node>();
 
     public static Graph Current { get; private set; }
 
@@ -158,7 +158,7 @@ public class Graph : MonoBehaviour
         bNeighbors.Add(a);
     }
 
-    public List<Node> GetNeighbors(Node current)
+    public IReadOnlyList<Node> GetNeighbors(Node current)
     {
         return _neighbors.TryGetValue(current, out List<Node> neighbors)
             ? neighbors

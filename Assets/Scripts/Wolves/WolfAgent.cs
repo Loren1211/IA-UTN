@@ -38,6 +38,7 @@ public class WolfAgent : MonoBehaviour
     [SerializeField] private NavAgent _navAgent;
     [SerializeField] private SensorAgent _sensor;
     [SerializeField] private WolfVisual _visual;
+    [SerializeField] private WolfFovVisual _fovVisual;
     [SerializeField] private EntityStatus _status;
     [SerializeField] private Collider _collider;
 
@@ -89,6 +90,7 @@ public class WolfAgent : MonoBehaviour
         if (_sensor == null) _sensor = GetComponent<SensorAgent>();
         if (_collider == null) _collider = GetComponent<Collider>();
         if (_visual == null) _visual = GetComponent<WolfVisual>();
+        if (_fovVisual == null) _fovVisual = GetComponentInChildren<WolfFovVisual>();
         if (_status == null) _status = GetComponent<EntityStatus>();
         if (_threatSensor == null) _threatSensor = GetComponent<ThreatSensor>();
     }
@@ -143,6 +145,9 @@ public class WolfAgent : MonoBehaviour
     {
         if (_navAgent != null && Graph.Current != null)
             _navAgent.SetObstacleMask(Graph.Current.WallMask);
+
+        if (_fovVisual != null && _sensor != null)
+            _fovVisual.Configure(_sensor.ViewRadius, _sensor.ViewAngle);
 
         _started = true;
         _fsm.ChangeState(WolfStateId.Patrol);

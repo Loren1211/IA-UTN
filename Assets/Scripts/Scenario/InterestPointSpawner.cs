@@ -47,11 +47,12 @@ public class InterestPointSpawner : MonoBehaviour
 
     public bool TrySpawn()
     {
+        if (_bounds == null) return false;
+        if (Time.time < _nextSpawnTime) return false;
+
         CleanupActive();
 
-        if (_bounds == null) return false;
         if (_activePoints.Count >= _maxActive) return false;
-        if (Time.time < _nextSpawnTime) return false;
 
         Vector3 position = _bounds.RandomPointInside();
         position.y = SpawnHeightOffset + _size * 0.5f;

@@ -55,6 +55,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     private const float VelocityTolerance = 2f;
     private const float MinPredictionSpeed = 0.01f;
+    private const float HuntColorCheckInterval = 0.1f;
 
     private int _gathers;
     private float _nextMeleeTime;
@@ -64,6 +65,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     private bool _wasInSafeZone;
     private float _nextFleeTime;
     private float _nextWolfCheckTime;
+    private float _nextHuntColorCheckTime;
     private Boid _attackTarget;
     private Boid _gatherTarget;
     private SafeZone _selectedSafeZone;
@@ -300,16 +302,22 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     {
         if (_visual == null) return;
 
+        _visual.SetFleeing(CurrentState == HunterStateId.Flee);
+
+        if (Time.time < _nextHuntColorCheckTime) return;
+        _nextHuntColorCheckTime = Time.time + HuntColorCheckInterval;
+
         bool hunting = CurrentState == HunterStateId.Attack ||
                        (CurrentState == HunterStateId.Search &&
                         GetClosestVisibleLiveBoid() != null);
 
-        _visual.SetFleeing(CurrentState == HunterStateId.Flee);
         _visual.SetAttacking(hunting);
     }
 
     private void OnStateChanged(HunterStateId state)
     {
+        _nextHuntColorCheckTime = 0f;
+
         if (_status != null) _status.SetState(state.ToString());
     }
 
