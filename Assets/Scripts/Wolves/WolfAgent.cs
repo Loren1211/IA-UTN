@@ -27,11 +27,11 @@ public class WolfAgent : MonoBehaviour
 
     [Header("Combat")]
     [SerializeField] private float _captureRadius = 1.3f;
+    [SerializeField] private float _interceptLeadMax = 1f;
 
     [Header("States")]
     [SerializeField] private float _alertDuration = 0.8f;
     [SerializeField] private float _searchDuration = 4f;
-    [SerializeField] private float _howlDuration = 0.7f;
 
     [Header("References")]
     [SerializeField] private WolfPack _pack;
@@ -50,7 +50,6 @@ public class WolfAgent : MonoBehaviour
     private bool _raisingAlert;
     private int _waypointIndex;
     private float _nextAlertTime;
-    private float _howlUntil;
     private WolfStateId _lastVisualState = (WolfStateId)(-1);
     private bool _lastVisualSees;
 
@@ -59,6 +58,7 @@ public class WolfAgent : MonoBehaviour
     public float SearchSpeed => _searchSpeed;
     public float TurnSpeed => _turnSpeed;
     public float CaptureRadius => _captureRadius;
+    public float InterceptLeadMax => _interceptLeadMax;
     public float AlertDuration => _alertDuration;
     public float SearchDuration => _searchDuration;
     public float WaypointReachDistance => _waypointReachDistance;
@@ -89,9 +89,9 @@ public class WolfAgent : MonoBehaviour
         if (_searchSpeed <= 0f) _searchSpeed = 3.6f;
         if (_waypointReachDistance <= 0f) _waypointReachDistance = 1f;
         if (_captureRadius <= 0f) _captureRadius = 1.3f;
+        if (_interceptLeadMax <= 0f) _interceptLeadMax = 1f;
         if (_alertDuration <= 0f) _alertDuration = 0.8f;
         if (_searchDuration <= 0f) _searchDuration = 4f;
-        if (_howlDuration <= 0f) _howlDuration = 0.7f;
 
         _fsm.AddState(WolfStateId.Patrol, new WolfPatrolState(_fsm, this));
         _fsm.AddState(WolfStateId.Alert, new WolfAlertState(_fsm, this));
@@ -127,12 +127,6 @@ public class WolfAgent : MonoBehaviour
     {
         _fsm.Update();
         UpdateVisual();
-
-        if (_howlUntil > 0f && Time.time >= _howlUntil)
-        {
-            _howlUntil = 0f;
-            if (_visual != null) _visual.SetHowling(false);
-        }
     }
 
     private void UpdateVisual()
@@ -212,9 +206,6 @@ public class WolfAgent : MonoBehaviour
         _raisingAlert = true;
         _pack.RaiseAlert(position);
         _raisingAlert = false;
-
-        _howlUntil = Time.time + _howlDuration;
-        if (_visual != null) _visual.SetHowling(true);
     }
 
     public void RememberPosition(Vector3 position)
@@ -279,16 +270,6 @@ public class WolfAgent : MonoBehaviour
     {
         _hunter = null;
         _hasLastKnown = false;
-    }
-
-    public void FaceTowards(Vector3 worldPosition)
-    {
-        Vector3 direction = worldPosition - transform.position;
-        direction.y = 0f;
-        if (direction.sqrMagnitude < 0.0001f) return;
-
-        transform.forward = Vector3.Slerp(transform.forward, direction.normalized,
-            Mathf.Clamp01(10f * Time.deltaTime));
     }
 
     public void RotateInPlace(float degreesPerSecond)

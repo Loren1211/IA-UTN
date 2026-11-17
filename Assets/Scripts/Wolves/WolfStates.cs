@@ -132,14 +132,29 @@ public class WolfChaseState : WolfState
 
             if (Wolf.HasLineOfSight(position))
             {
-                Wolf.MoveDirect(position, Wolf.ChaseSpeed, Wolf.CaptureRadius * 0.8f);
+                Vector3 aim = position;
+                HunterAgent hunter = Wolf.CurrentTarget.GetComponentInParent<HunterAgent>();
+
+                if (hunter != null)
+                {
+                    float closingSpeed = Wolf.ChaseSpeed + hunter.Velocity.magnitude;
+                    float lead = Mathf.Clamp(distance / Mathf.Max(0.1f, closingSpeed),
+                        0.1f, Wolf.InterceptLeadMax);
+                    Vector3 predicted = position + hunter.Velocity * lead;
+
+                    bool predictedIsSafe = Wolf.ZoneManager == null ||
+                                           !Wolf.ZoneManager.IsInsideSafeZone(predicted);
+
+                    if (predictedIsSafe && Wolf.HasLineOfSight(predicted)) aim = predicted;
+                }
+
+                Wolf.MoveDirect(aim, Wolf.ChaseSpeed, Wolf.CaptureRadius * 0.8f);
             }
             else if (!Wolf.NavAgent.IsFollowingPath)
             {
                 Wolf.NavigateTo(position, Wolf.ChaseSpeed);
             }
 
-            Wolf.FaceTowards(position);
             return;
         }
 

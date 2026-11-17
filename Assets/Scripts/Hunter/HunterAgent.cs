@@ -52,6 +52,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     private int _gathers;
     private float _nextMeleeTime;
     private float _nextRangedTime;
+    private Vector3 _lastPosition;
     private bool _isDead;
     private Boid _attackTarget;
     private Boid _gatherTarget;
@@ -79,6 +80,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     public HunterStateId CurrentState => _fsm.CurrentState;
     public string CurrentStateName => _fsm.CurrentStateName;
+    public Vector3 Velocity { get; private set; }
     public Boid AttackTarget => _attackTarget;
     public Boid GatherTarget => _gatherTarget;
     public SafeZone SelectedSafeZone => _selectedSafeZone;
@@ -144,6 +146,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _fsm.AddState(HunterStateId.Dead, new DeadState(_fsm, this));
 
         _fsm.StateChanged += OnStateChanged;
+
+        _lastPosition = transform.position;
     }
 
     private void Start()
@@ -163,6 +167,19 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     {
         _fsm.Update();
         UpdateHuntColor();
+    }
+
+    private void LateUpdate()
+    {
+        float deltaTime = Time.deltaTime;
+        Vector3 delta = transform.position - _lastPosition;
+        float maxStep = _fleeSpeed * deltaTime * 2f;
+
+        Velocity = deltaTime <= 0f || delta.magnitude > maxStep
+            ? Vector3.zero
+            : delta / deltaTime;
+
+        _lastPosition = transform.position;
     }
 
     private void UpdateHuntColor()
@@ -372,6 +389,9 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_navAgent != null) _navAgent.Stop();
 
         if (_startPoint != null) transform.position = _startPoint.position;
+
+        _lastPosition = transform.position;
+        Velocity = Vector3.zero;
 
         _isDead = false;
         _gathers = 0;

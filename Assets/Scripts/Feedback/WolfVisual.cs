@@ -11,7 +11,6 @@ public class WolfVisual : MonoBehaviour
     private MaterialPropertyBlock _materialBlock;
     private WolfStateId _lastState = (WolfStateId)(-1);
     private bool _lastSeesTarget;
-    private bool _howling;
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int ColorId = Shader.PropertyToID("_Color");
 
@@ -30,15 +29,7 @@ public class WolfVisual : MonoBehaviour
 
         _lastState = state;
         _lastSeesTarget = seesTarget;
-        if (!_howling) SetColor(GetStateColor(state, seesTarget));
-    }
-
-    public void SetHowling(bool howling)
-    {
-        if (_howling == howling) return;
-
-        _howling = howling;
-        SetColor(howling ? _alertColor : GetStateColor(_lastState, _lastSeesTarget));
+        SetColor(GetStateColor(state, seesTarget));
     }
 
     private Color GetStateColor(WolfStateId state, bool seesTarget)
