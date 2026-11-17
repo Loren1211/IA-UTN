@@ -378,6 +378,7 @@ Transform:
   - {fileID: 1171790679}
   - {fileID: 784428735}
   - {fileID: 1193130232}
+  - {fileID: 1941912172}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &32086440
@@ -4455,6 +4456,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5640740976124184068, guid: e49bcd74ae87bf84b9dc13c1018696db, type: 3}
   m_PrefabInstance: {fileID: 1193130231}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1193130233 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 178423050979535428, guid: e49bcd74ae87bf84b9dc13c1018696db, type: 3}
+  m_PrefabInstance: {fileID: 1193130231}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d420f4a2a7017bd42a39572d51a41c0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HunterAgent
 --- !u!1 &1205665962
 GameObject:
   m_ObjectHideFlags: 0
@@ -6455,6 +6467,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1938033794}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1941912171
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1941912172}
+  - component: {fileID: 1941912173}
+  m_Layer: 0
+  m_Name: HUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1941912172
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941912171}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 27089271}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1941912173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941912171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b176dfd085f28d343bf5519347583e35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SimulationHUD
+  _camera: {fileID: 1453863279}
+  _hunter: {fileID: 1193130233}
+  _boidManager: {fileID: 1171790680}
+  _wolfPack: {fileID: 784428736}
+  _zoneManager: {fileID: 1276202395}
+  _fontSize: 12
+  _panelWidth: 280
+  _hunterLabelHeight: 2.2
+  _wolfLabelHeight: 1.8
+  _boidLabelHeight: 1.2
+  _pathWidth: 2.5
+  _drawPaths: 1
+  _drawZoneLabels: 1
+  _drawBoidLabels: 1
+  _drawPanel: 1
 --- !u!1 &1965989852
 GameObject:
   m_ObjectHideFlags: 0

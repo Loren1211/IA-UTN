@@ -10,11 +10,13 @@ public class EntityStatus : MonoBehaviour
     private float _progress;
 
     public event Action<EntityStatus> Changed;
+    public event Action<EntityStatus> StateChanged;
 
     public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
     public string State => _state;
     public string Action => _action;
     public float Progress => _progress;
+    public Color Color { get; private set; } = Color.white;
 
     private void Awake()
     {
@@ -27,6 +29,7 @@ public class EntityStatus : MonoBehaviour
 
         _state = state;
         Changed?.Invoke(this);
+        StateChanged?.Invoke(this);
     }
 
     public void SetAction(string action)
@@ -46,5 +49,10 @@ public class EntityStatus : MonoBehaviour
     public void SetProgress(float progress)
     {
         _progress = Mathf.Clamp01(progress);
+    }
+
+    public void SetColor(Color color)
+    {
+        Color = color;
     }
 }

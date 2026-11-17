@@ -24,6 +24,24 @@ public class NavAgent : MonoBehaviour
     public IReadOnlyList<Node> CurrentPath => _path;
     public float Speed => _speed;
 
+    public bool TryGetDestination(out Vector3 destination)
+    {
+        if (_path.Count > 0)
+        {
+            destination = _path[_path.Count - 1].transform.position;
+            return true;
+        }
+
+        if (_hasDirectTarget)
+        {
+            destination = _directTarget;
+            return true;
+        }
+
+        destination = transform.position;
+        return false;
+    }
+
     public void SetSpeed(float speed) => _speed = Mathf.Max(0.1f, speed);
 
     public void SetObstacleMask(LayerMask mask) => _wallMask = mask;

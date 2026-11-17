@@ -9,12 +9,14 @@ public class BoidVisual : MonoBehaviour
     [SerializeField] private Color _deadColor = new(0.05f, 0.05f, 0.06f);
 
     private MaterialPropertyBlock _materialBlock;
+    private EntityStatus _status;
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int ColorId = Shader.PropertyToID("_Color");
 
     private void Awake()
     {
         if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
+        _status = GetComponent<EntityStatus>();
 
         _materialBlock = new MaterialPropertyBlock();
         SetHealth(1f);
@@ -49,5 +51,7 @@ public class BoidVisual : MonoBehaviour
         _materialBlock.SetColor(BaseColorId, color);
         _materialBlock.SetColor(ColorId, color);
         _renderer.SetPropertyBlock(_materialBlock);
+
+        if (_status != null) _status.SetColor(color);
     }
 }

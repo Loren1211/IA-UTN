@@ -9,6 +9,7 @@ public class WolfVisual : MonoBehaviour
     [SerializeField] private Color _searchColor = new(1f, 0.85f, 0.20f);
 
     private MaterialPropertyBlock _materialBlock;
+    private EntityStatus _status;
     private WolfStateId _lastState = (WolfStateId)(-1);
     private bool _lastSeesTarget;
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -17,6 +18,7 @@ public class WolfVisual : MonoBehaviour
     private void Awake()
     {
         if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
+        _status = GetComponent<EntityStatus>();
 
         _materialBlock = new MaterialPropertyBlock();
         SetColor(_patrolColor);
@@ -51,5 +53,7 @@ public class WolfVisual : MonoBehaviour
         _materialBlock.SetColor(BaseColorId, color);
         _materialBlock.SetColor(ColorId, color);
         _renderer.SetPropertyBlock(_materialBlock);
+
+        if (_status != null) _status.SetColor(color);
     }
 }

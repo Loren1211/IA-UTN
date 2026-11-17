@@ -265,7 +265,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fedf0a66ac4a0ce4e83a1dd2c7c54fc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityStatus
-  _displayName: Wolf
+  _displayName: 
 --- !u!114 &2961314300470791547
 MonoBehaviour:
   m_ObjectHideFlags: 0

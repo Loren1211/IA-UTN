@@ -8,6 +8,7 @@ public class HunterVisual : MonoBehaviour
     [SerializeField] private Color _fleeColor = new(0.20f, 0.78f, 0.95f);
 
     private MaterialPropertyBlock _materialBlock;
+    private EntityStatus _status;
     private bool _attacking;
     private bool _fleeing;
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -16,6 +17,7 @@ public class HunterVisual : MonoBehaviour
     private void Awake()
     {
         if (_renderer == null) _renderer = GetComponentInChildren<Renderer>();
+        _status = GetComponent<EntityStatus>();
 
         _materialBlock = new MaterialPropertyBlock();
         SetColor(_defaultColor);
@@ -55,5 +57,7 @@ public class HunterVisual : MonoBehaviour
         _materialBlock.SetColor(BaseColorId, color);
         _materialBlock.SetColor(ColorId, color);
         _renderer.SetPropertyBlock(_materialBlock);
+
+        if (_status != null) _status.SetColor(color);
     }
 }
