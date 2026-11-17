@@ -236,8 +236,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 597307ee40afea549a6f2c3f0c807f2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WolfAgent
-  _patrolSpeed: 3.2
-  _chaseSpeed: 4.2
+  _patrolSpeed: 4
+  _chaseSpeed: 4.8
   _turnSpeed: 120
   _waypoints: []
   _waypointReachDistance: 1

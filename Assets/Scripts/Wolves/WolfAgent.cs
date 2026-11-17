@@ -13,8 +13,8 @@ public enum WolfStateId
 public class WolfAgent : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float _patrolSpeed = 3.2f;
-    [SerializeField] private float _chaseSpeed = 4.2f;
+    [SerializeField] private float _patrolSpeed = 4f;
+    [SerializeField] private float _chaseSpeed = 4.8f;
     [SerializeField] private float _turnSpeed = 120f;
 
     [Header("Patrol")]
@@ -95,8 +95,8 @@ public class WolfAgent : MonoBehaviour
 
     private void ClampSettings()
     {
-        if (_patrolSpeed <= 0f) _patrolSpeed = 3.2f;
-        if (_chaseSpeed <= 0f) _chaseSpeed = 4.2f;
+        if (_patrolSpeed <= 0f) _patrolSpeed = 4f;
+        if (_chaseSpeed <= 0f) _chaseSpeed = 4.8f;
         if (_waypointReachDistance <= 0f) _waypointReachDistance = 1f;
         if (_captureRadius <= 0f) _captureRadius = 1.3f;
         if (_interceptLeadMax <= 0f) _interceptLeadMax = 1f;
