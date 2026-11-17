@@ -10,6 +10,7 @@ public class WolfVisual : MonoBehaviour
 
     private MaterialPropertyBlock _materialBlock;
     private WolfStateId _lastState = (WolfStateId)(-1);
+    private bool _lastSeesTarget;
     private bool _howling;
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int ColorId = Shader.PropertyToID("_Color");
@@ -23,12 +24,13 @@ public class WolfVisual : MonoBehaviour
         _lastState = WolfStateId.Patrol;
     }
 
-    public void SetState(WolfStateId state)
+    public void SetState(WolfStateId state, bool seesTarget)
     {
-        if (_lastState == state) return;
+        if (_lastState == state && _lastSeesTarget == seesTarget) return;
 
         _lastState = state;
-        if (!_howling) SetColor(GetStateColor(state));
+        _lastSeesTarget = seesTarget;
+        if (!_howling) SetColor(GetStateColor(state, seesTarget));
     }
 
     public void SetHowling(bool howling)
@@ -36,15 +38,15 @@ public class WolfVisual : MonoBehaviour
         if (_howling == howling) return;
 
         _howling = howling;
-        SetColor(howling ? _alertColor : GetStateColor(_lastState));
+        SetColor(howling ? _alertColor : GetStateColor(_lastState, _lastSeesTarget));
     }
 
-    private Color GetStateColor(WolfStateId state)
+    private Color GetStateColor(WolfStateId state, bool seesTarget)
     {
         return state switch
         {
+            WolfStateId.Chase => seesTarget ? _chaseColor : _alertColor,
             WolfStateId.Alert => _alertColor,
-            WolfStateId.Chase => _chaseColor,
             WolfStateId.Search => _searchColor,
             _ => _patrolColor
         };

@@ -51,6 +51,8 @@ public class WolfAgent : MonoBehaviour
     private int _waypointIndex;
     private float _nextAlertTime;
     private float _howlUntil;
+    private WolfStateId _lastVisualState = (WolfStateId)(-1);
+    private bool _lastVisualSees;
 
     public float PatrolSpeed => _patrolSpeed;
     public float ChaseSpeed => _chaseSpeed;
@@ -71,6 +73,7 @@ public class WolfAgent : MonoBehaviour
     public bool HasLastKnown => _hasLastKnown;
     public Vector3 LastKnownPosition => _lastKnownPosition;
     public bool IsHunting => CurrentState != WolfStateId.Patrol;
+    public bool IsSeeingTarget => _hunter != null;
 
     private void Awake()
     {
@@ -123,6 +126,7 @@ public class WolfAgent : MonoBehaviour
     private void Update()
     {
         _fsm.Update();
+        UpdateVisual();
 
         if (_howlUntil > 0f && Time.time >= _howlUntil)
         {
@@ -131,10 +135,19 @@ public class WolfAgent : MonoBehaviour
         }
     }
 
+    private void UpdateVisual()
+    {
+        if (_visual == null) return;
+        if (_lastVisualState == CurrentState && _lastVisualSees == IsSeeingTarget) return;
+
+        _lastVisualState = CurrentState;
+        _lastVisualSees = IsSeeingTarget;
+        _visual.SetState(CurrentState, IsSeeingTarget);
+    }
+
     private void OnStateChanged(WolfStateId state)
     {
         if (_status != null) _status.SetState(state.ToString());
-        if (_visual != null) _visual.SetState(state);
     }
 
     private void OnPackAlert(Vector3 position)

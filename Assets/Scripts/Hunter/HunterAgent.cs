@@ -173,6 +173,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
                        (CurrentState == HunterStateId.Search &&
                         GetClosestVisibleLiveBoid() != null);
 
+        _visual.SetFleeing(CurrentState == HunterStateId.Flee);
         _visual.SetAttacking(hunting);
     }
 
@@ -358,6 +359,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
         if (_navAgent != null) _navAgent.Stop();
         if (_visual != null) _visual.SetAttacking(false);
+        if (_visual != null) _visual.SetFleeing(false);
         SetVisible(false);
         SetActionProgress(0f, "Dead");
     }
@@ -378,6 +380,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
         SetVisible(true);
         if (_visual != null) _visual.SetAttacking(false);
+        if (_visual != null) _visual.SetFleeing(false);
         SetActionProgress(0f, "");
     }
 

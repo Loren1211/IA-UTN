@@ -333,7 +333,10 @@ public class FleeState : HunterState
             return;
         }
 
-        if (Vector3.Distance(Hunter.transform.position, center) > 0.6f)
+        Vector3 toCenter = center - Hunter.transform.position;
+        toCenter.y = 0f;
+
+        if (toCenter.magnitude > 0.6f)
         {
             Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.5f);
             Hunter.SetActionProgress(0f, "Fleeing");
@@ -344,7 +347,7 @@ public class FleeState : HunterState
         _waitTimer += Time.deltaTime;
 
         bool wolvesHunting = Hunter.WolfPack != null && Hunter.WolfPack.IsHunting;
-        if (wolvesHunting || Hunter.WolfVisible) _waitTimer = 0f;
+        if (wolvesHunting) _waitTimer = 0f;
 
         Hunter.SetActionProgress(Mathf.Clamp01(_waitTimer / Hunter.SafeZoneWaitTime),
             "Waiting in safe zone");
