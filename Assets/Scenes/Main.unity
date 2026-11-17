@@ -6513,18 +6513,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SimulationHUD
   _camera: {fileID: 1453863279}
   _hunter: {fileID: 1193130233}
-  _boidManager: {fileID: 1171790680}
   _wolfPack: {fileID: 784428736}
   _zoneManager: {fileID: 1276202395}
   _fontSize: 12
   _panelWidth: 280
   _hunterLabelHeight: 2.2
   _wolfLabelHeight: 1.8
-  _boidLabelHeight: 1.2
   _pathWidth: 2.5
   _drawPaths: 1
   _drawZoneLabels: 1
-  _drawBoidLabels: 1
   _drawPanel: 1
 --- !u!1 &1965989852
 GameObject:

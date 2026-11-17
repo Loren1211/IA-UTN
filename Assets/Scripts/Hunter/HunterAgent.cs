@@ -89,6 +89,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public Transform StartPoint => _startPoint;
     public Transform ExitPoint => _exitPoint;
     public Transform ThreatTransform => transform;
+    public bool IsThreatAlive => !_isDead;
     public BoidManager BoidManager => _boidManager;
     public ZoneManager ZoneManager => _zoneManager;
     public WolfPack WolfPack => _wolfPack;
@@ -387,6 +388,8 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         _attackTarget = null;
         _gatherTarget = null;
         _selectedSafeZone = null;
+
+        if (_wolfPack != null) _wolfPack.ClearAlert();
 
         if (_navAgent != null) _navAgent.Stop();
         if (_visual != null) _visual.SetAttacking(false);

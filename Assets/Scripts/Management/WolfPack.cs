@@ -41,8 +41,6 @@ public class WolfPack : MonoBehaviour
 
     public void ClearAlert()
     {
-        if (LastKnownHunterPosition == null) return;
-
         LastKnownHunterPosition = null;
         AlertCleared?.Invoke();
     }

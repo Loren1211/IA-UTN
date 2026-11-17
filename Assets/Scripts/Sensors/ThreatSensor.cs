@@ -43,7 +43,7 @@ public class ThreatSensor : MonoBehaviour
             if (candidate == null) continue;
 
             IThreatTarget target = candidate.GetComponentInParent<IThreatTarget>();
-            if (target == null) continue;
+            if (target == null || !target.IsThreatAlive) continue;
 
             Transform targetTransform = target.ThreatTransform;
             Vector3 difference = targetTransform.position - transform.position;

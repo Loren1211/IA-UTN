@@ -7,7 +7,6 @@ public class SimulationHUD : MonoBehaviour
     [Header("References")]
     [SerializeField] private Camera _camera;
     [SerializeField] private HunterAgent _hunter;
-    [SerializeField] private BoidManager _boidManager;
     [SerializeField] private WolfPack _wolfPack;
     [SerializeField] private ZoneManager _zoneManager;
 
@@ -16,20 +15,17 @@ public class SimulationHUD : MonoBehaviour
     [SerializeField] private int _panelWidth = 280;
     [SerializeField] private float _hunterLabelHeight = 2.2f;
     [SerializeField] private float _wolfLabelHeight = 1.8f;
-    [SerializeField] private float _boidLabelHeight = 1.2f;
     [SerializeField] private float _pathWidth = 2.5f;
 
     [Header("Toggles")]
     [SerializeField] private bool _drawPaths = true;
     [SerializeField] private bool _drawZoneLabels = true;
-    [SerializeField] private bool _drawBoidLabels = true;
     [SerializeField] private bool _drawPanel = true;
 
     private readonly List<EntityStatus> _statuses = new();
     private readonly List<string> _events = new();
 
     private GUIStyle _entityStyle;
-    private GUIStyle _smallEntityStyle;
     private GUIStyle _panelTextStyle;
     private GUIStyle _zoneStyle;
     private GUIStyle _alertStyle;
@@ -71,14 +67,6 @@ public class SimulationHUD : MonoBehaviour
             foreach (WolfAgent wolf in _wolfPack.Agents)
             {
                 if (wolf != null) AddStatus(wolf.GetComponent<EntityStatus>());
-            }
-        }
-
-        if (_boidManager != null)
-        {
-            foreach (Boid boid in _boidManager.Boids)
-            {
-                if (boid != null) AddStatus(boid.GetComponent<EntityStatus>());
             }
         }
     }
@@ -142,11 +130,6 @@ public class SimulationHUD : MonoBehaviour
             padding = new RectOffset(8, 8, 3, 3)
         };
         _entityStyle.normal.textColor = Color.white;
-
-        _smallEntityStyle = new GUIStyle(_entityStyle)
-        {
-            fontSize = Mathf.Max(9, _fontSize - 2)
-        };
 
         _panelTextStyle = new GUIStyle(GUI.skin.label)
         {
@@ -304,14 +287,6 @@ public class SimulationHUD : MonoBehaviour
             if (wolf != null)
             {
                 DrawEntityLabel(status, wolf.transform.position, _wolfLabelHeight, false, 0f);
-                continue;
-            }
-
-            Boid boid = status.GetComponent<Boid>();
-            if (boid != null && _drawBoidLabels)
-            {
-                float health = boid.MaxHealth > 0f ? boid.Health / boid.MaxHealth : 0f;
-                DrawEntityLabel(status, boid.transform.position, _boidLabelHeight, true, health);
             }
         }
     }
@@ -325,10 +300,7 @@ public class SimulationHUD : MonoBehaviour
             ? $"{status.DisplayName} [{status.State}]"
             : $"{status.DisplayName} [{status.State}]\n{status.Action}";
 
-        bool isBoid = status.GetComponent<Boid>() != null;
-        GUIStyle style = isBoid ? _smallEntityStyle : _entityStyle;
-        Vector2 size = style.CalcSize(new GUIContent(text));
-
+        Vector2 size = _entityStyle.CalcSize(new GUIContent(text));
         Rect rect = new(screen.x - size.x * 0.5f, screen.y - size.y, size.x, size.y);
 
         Color savedColor = GUI.color;
@@ -339,7 +311,7 @@ public class SimulationHUD : MonoBehaviour
         GUI.DrawTexture(new Rect(rect.x, rect.y, 3f, rect.height), Texture2D.whiteTexture);
         GUI.color = savedColor;
 
-        GUI.Label(rect, text, style);
+        GUI.Label(rect, text, _entityStyle);
 
         if (!showBar) return;
 

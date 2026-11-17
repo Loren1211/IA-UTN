@@ -170,8 +170,20 @@ public class WolfAgent : MonoBehaviour
     public bool UpdateDetection()
     {
         Transform candidate = _threatSensor != null ? _threatSensor.Threat : null;
+        if (candidate == null)
+        {
+            _hunter = null;
+            return false;
+        }
 
-        if (candidate == null || _sensor == null || !_sensor.CanSee(candidate))
+        IThreatTarget threat = candidate.GetComponentInParent<IThreatTarget>();
+        if (threat == null || !threat.IsThreatAlive)
+        {
+            _hunter = null;
+            return false;
+        }
+
+        if (_sensor == null || !_sensor.CanSee(candidate))
         {
             _hunter = null;
             return false;
