@@ -6,10 +6,8 @@ using UnityEngine;
 public class WolfPack : MonoBehaviour
 {
     private readonly List<WolfAgent> _agents = new();
-    private readonly List<Transform> _wolves = new();
 
     public IReadOnlyList<WolfAgent> Agents => _agents;
-    public IReadOnlyList<Transform> Wolves => _wolves;
 
     public event Action<Vector3> AlertRaised;
     public event Action AlertCleared;
@@ -33,9 +31,6 @@ public class WolfPack : MonoBehaviour
     {
         _agents.Clear();
         GetComponentsInChildren(true, _agents);
-
-        _wolves.Clear();
-        foreach (WolfAgent wolf in _agents) _wolves.Add(wolf.transform);
     }
 
     public void RaiseAlert(Vector3 hunterPosition)

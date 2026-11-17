@@ -17,7 +17,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [Header("FSM")]
     [SerializeField] private int _requiredGathers = 3;
     [SerializeField] private float _respawnTime = 5f;
-    [SerializeField] private float _safeZoneWaitTime = 4f;
+    [SerializeField] private float _safeZoneWaitTime = 1.5f;
 
     [Header("Combat")]
     [SerializeField] private float _meleeAttackRadius = 2f;
@@ -107,23 +107,34 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     public bool IsInSafeZone => _zoneManager != null && _zoneManager.IsInsideSafeZone(transform.position);
 
-    public bool HasVisibleDeadBoid => GetClosestVisibleDeadBoid() != null;
+    public bool IsHunted => _wolfPack != null && _wolfPack.IsHunting;
 
-    public bool WolfVisible
+    public bool ShouldPrioritizeExit()
     {
-        get
+        if (_gathers < _requiredGathers || _exitPoint == null) return false;
+
+        float exitDistance = FlatDistance(transform.position, _exitPoint.position);
+        if (_zoneManager == null) return true;
+
+        float safeDistance = float.MaxValue;
+
+        foreach (SafeZone zone in _zoneManager.SafeZones)
         {
-            if (_isDead || _sensor == null || _wolfPack == null) return false;
-
-            foreach (Transform wolf in _wolfPack.Wolves)
-            {
-                if (wolf == null || !wolf.gameObject.activeInHierarchy) continue;
-                if (_sensor.CanSee(wolf)) return true;
-            }
-
-            return false;
+            if (zone == null) continue;
+            safeDistance = Mathf.Min(safeDistance, FlatDistance(transform.position, zone.Center));
         }
+
+        return exitDistance < safeDistance;
     }
+
+    private static float FlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0f;
+        b.y = 0f;
+        return Vector3.Distance(a, b);
+    }
+
+    public bool HasVisibleDeadBoid => GetClosestVisibleDeadBoid() != null;
 
     private void Awake()
     {

@@ -113,7 +113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HunterAgent
   _requiredGathers: 3
   _respawnTime: 5
-  _safeZoneWaitTime: 4
+  _safeZoneWaitTime: 1.5
   _meleeAttackRadius: 2
   _meleeStopDistance: 1.3
   _rangeAttackRadius: 7

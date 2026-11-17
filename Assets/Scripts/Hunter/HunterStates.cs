@@ -19,10 +19,21 @@ public abstract class HunterState : State<HunterStateId>
             return true;
         }
 
+        if (Hunter.ShouldPrioritizeExit())
+        {
+            if (_fsm.CurrentState != HunterStateId.Exit)
+            {
+                _fsm.ChangeState(HunterStateId.Exit);
+                return true;
+            }
+
+            return false;
+        }
+
         if (_fsm.CurrentState == HunterStateId.Dead || _fsm.CurrentState == HunterStateId.Flee)
             return false;
 
-        if (Hunter.WolfVisible)
+        if (Hunter.IsHunted)
         {
             _fsm.ChangeState(HunterStateId.Flee);
             return true;
