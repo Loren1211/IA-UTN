@@ -144,18 +144,27 @@ public class WolfAgent : MonoBehaviour
         if (_status != null) _status.SetState(state.ToString());
     }
 
-    private void OnPackAlert(Vector3 position)
+    private void OnPackAlert(Vector3 hunterPosition, Vector3 howlerPosition)
     {
         if (!_started) return;
-        if (_zoneManager != null && _zoneManager.IsInsideSafeZone(position)) return;
+        if (_zoneManager != null && _zoneManager.IsInsideSafeZone(hunterPosition)) return;
 
-        _lastKnownPosition = position;
+        bool changed = !_hasLastKnown ||
+                       Vector3.Distance(_lastKnownPosition, hunterPosition) > 0.5f;
+
+        _lastKnownPosition = hunterPosition;
         _hasLastKnown = true;
 
         if (_raisingAlert) return;
 
         if (_fsm.CurrentState == WolfStateId.Patrol || _fsm.CurrentState == WolfStateId.Search)
+        {
             _fsm.ChangeState(WolfStateId.Alert);
+            return;
+        }
+
+        if (changed && (_fsm.CurrentState == WolfStateId.Alert || _fsm.CurrentState == WolfStateId.Chase))
+            NavigateTo(hunterPosition, _chaseSpeed);
     }
 
     private void OnPackCleared()
@@ -216,7 +225,7 @@ public class WolfAgent : MonoBehaviour
         _nextAlertTime = Time.time + 1f;
 
         _raisingAlert = true;
-        _pack.RaiseAlert(position);
+        _pack.RaiseAlert(position, transform.position);
         _raisingAlert = false;
     }
 

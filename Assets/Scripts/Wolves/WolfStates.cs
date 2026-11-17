@@ -66,7 +66,11 @@ public class WolfAlertState : WolfState
     public override void Enter()
     {
         _timer = 0f;
+        Wolf.Stop();
         Wolf.SetAction("Responding to howl");
+
+        if (Wolf.HasLastKnown)
+            Wolf.NavigateTo(Wolf.LastKnownPosition, Wolf.ChaseSpeed);
     }
 
     public override void Update()

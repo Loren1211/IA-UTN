@@ -35,6 +35,9 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _fleeSpeed = 6f;
 
+    [Header("Threat")]
+    [SerializeField] private float _wolfDangerRadius = 3f;
+
     [Header("References")]
     [SerializeField] private Transform _startPoint;
     [SerializeField] private Transform _exitPoint;
@@ -71,6 +74,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
     public float GatherRange => _gatherRange;
     public float MoveSpeed => _moveSpeed;
     public float FleeSpeed => _fleeSpeed;
+    public float WolfDangerRadius => _wolfDangerRadius;
 
     public int Gathers => _gathers;
     public int Escapes { get; private set; }
@@ -114,7 +118,9 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
 
     public bool IsInSafeZone => _zoneManager != null && _zoneManager.IsInsideSafeZone(transform.position);
 
-    public bool IsHunted => _wolfPack != null && _wolfPack.IsHunting;
+    public bool IsHunted => _wolfPack != null &&
+                            (_wolfPack.IsHunting ||
+                             _wolfPack.HasWolfWithin(transform.position, _wolfDangerRadius));
 
     public bool ShouldPrioritizeExit()
     {
@@ -155,6 +161,7 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_meleeCooldown <= 0f) _meleeCooldown = 0.3f;
         if (_rangedCooldown <= 0f) _rangedCooldown = 1f;
         if (_meleeStopDistance <= 0f) _meleeStopDistance = 1.3f;
+        if (_wolfDangerRadius <= 0f) _wolfDangerRadius = 3f;
 
         _fsm.AddState(HunterStateId.Search, new SearchState(_fsm, this));
         _fsm.AddState(HunterStateId.Attack, new AttackState(_fsm, this));

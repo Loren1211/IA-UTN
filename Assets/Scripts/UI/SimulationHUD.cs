@@ -28,9 +28,10 @@ public class SimulationHUD : MonoBehaviour
     private GUIStyle _entityStyle;
     private GUIStyle _panelTextStyle;
     private GUIStyle _zoneStyle;
-    private GUIStyle _alertStyle;
 
-    private Vector3? _alertPosition;
+    private const float AlertDuration = 1.2f;
+
+    private Vector3 _alertHowler;
     private float _alertUntil;
     private float _nextHowlLog;
 
@@ -85,10 +86,10 @@ public class SimulationHUD : MonoBehaviour
         AddEvent($"{status.DisplayName} -> {status.State}");
     }
 
-    private void OnAlertRaised(Vector3 position)
+    private void OnAlertRaised(Vector3 hunterPosition, Vector3 howlerPosition)
     {
-        _alertPosition = position;
-        _alertUntil = Time.time + 1.2f;
+        _alertHowler = howlerPosition;
+        _alertUntil = Time.time + AlertDuration;
 
         if (Time.time < _nextHowlLog) return;
 
@@ -145,14 +146,6 @@ public class SimulationHUD : MonoBehaviour
             alignment = TextAnchor.MiddleCenter
         };
         _zoneStyle.normal.textColor = Color.white;
-
-        _alertStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontSize = _fontSize,
-            fontStyle = FontStyle.Bold,
-            alignment = TextAnchor.MiddleCenter
-        };
-        _alertStyle.normal.textColor = new Color(1f, 0.55f, 0.2f);
     }
 
     private bool Project(Vector3 worldPosition, out Vector2 screen)
@@ -336,10 +329,36 @@ public class SimulationHUD : MonoBehaviour
 
     private void DrawAlert()
     {
-        if (_alertPosition == null || Time.time >= _alertUntil) return;
-        if (!Project(_alertPosition.Value + Vector3.up * 2f, out Vector2 screen)) return;
+        if (Time.time >= _alertUntil) return;
 
-        GUI.Label(new Rect(screen.x - 60f, screen.y - 12f, 120f, 24f), "HOWL!", _alertStyle);
+        float progress = Mathf.Clamp01(1f - (_alertUntil - Time.time) / AlertDuration);
+        float radius = Mathf.Lerp(0.4f, 4.5f, progress);
+        Color color = new(1f, 0.55f, 0.20f, Mathf.Lerp(0.90f, 0.08f, progress));
+
+        Vector3 center = _alertHowler;
+        center.y = 0.1f;
+
+        const int segments = 32;
+        Vector2 previous = default;
+        bool hasPrevious = false;
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle = i * Mathf.PI * 2f / segments;
+            Vector3 worldPoint = center + new Vector3(
+                Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+
+            if (!Project(worldPoint, out Vector2 screen))
+            {
+                hasPrevious = false;
+                continue;
+            }
+
+            if (hasPrevious) DrawLine(previous, screen, color, 2f);
+
+            previous = screen;
+            hasPrevious = true;
+        }
     }
 
     private void DrawLastKnown()
