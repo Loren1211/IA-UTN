@@ -282,9 +282,7 @@ public class GatherState : HunterState
 public class FleeState : HunterState
 {
     private SafeZone _safeZone;
-    private bool _insideSafeZone;
     private float _waitTimer;
-
     public FleeState(FiniteStateMachine<HunterStateId> fsm, HunterAgent hunter)
         : base(fsm, hunter, "Flee") { }
 
@@ -295,7 +293,6 @@ public class FleeState : HunterState
 
         _safeZone = Hunter.FindClosestSafeZone();
         Hunter.SetSelectedSafeZone(_safeZone);
-        _insideSafeZone = false;
         _waitTimer = 0f;
 
         if (_safeZone == null)
@@ -304,8 +301,9 @@ public class FleeState : HunterState
             return;
         }
 
-        if (!Hunter.NavigateToNode(_safeZone.EntryNode, Hunter.FleeSpeed))
-            Hunter.MoveDirect(_safeZone.transform.position, Hunter.FleeSpeed, 0.2f);
+        Vector3 center = _safeZone.transform.position;
+        if (!Hunter.NavigateTo(center, Hunter.FleeSpeed))
+            Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.4f);
 
         Hunter.SetActionProgress(0f, "Fleeing");
     }
@@ -320,34 +318,36 @@ public class FleeState : HunterState
             return;
         }
 
-        if (!_insideSafeZone && _safeZone.Contains(Hunter.transform.position))
-        {
-            _insideSafeZone = true;
-            _waitTimer = 0f;
-            Hunter.Stop();
-        }
+        Vector3 center = _safeZone.transform.position;
+        bool inside = _safeZone.Contains(Hunter.transform.position);
 
-        if (!_insideSafeZone)
+        if (!inside)
         {
             if (!Hunter.NavAgent.IsMoving)
             {
-                if (Hunter.NavigateToNode(_safeZone.EntryNode, Hunter.FleeSpeed)) return;
-                Hunter.MoveDirect(_safeZone.transform.position, Hunter.FleeSpeed, 0.2f);
+                if (Hunter.NavigateTo(center, Hunter.FleeSpeed)) return;
+                Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.4f);
             }
 
             Hunter.SetActionProgress(0f, "Fleeing");
             return;
         }
 
-        _waitTimer += Time.deltaTime;
-        Hunter.SetActionProgress(Mathf.Clamp01(_waitTimer / Hunter.SafeZoneWaitTime),
-            "Waiting in safe zone");
-
-        if (Hunter.WolfVisible)
+        if (Vector3.Distance(Hunter.transform.position, center) > 0.6f)
         {
-            _waitTimer = 0f;
+            Hunter.MoveDirect(center, Hunter.FleeSpeed, 0.5f);
+            Hunter.SetActionProgress(0f, "Fleeing");
             return;
         }
+
+        Hunter.Stop();
+        _waitTimer += Time.deltaTime;
+
+        bool wolvesHunting = Hunter.WolfPack != null && Hunter.WolfPack.IsHunting;
+        if (wolvesHunting || Hunter.WolfVisible) _waitTimer = 0f;
+
+        Hunter.SetActionProgress(Mathf.Clamp01(_waitTimer / Hunter.SafeZoneWaitTime),
+            "Waiting in safe zone");
 
         if (_waitTimer < Hunter.SafeZoneWaitTime) return;
 
@@ -360,7 +360,6 @@ public class FleeState : HunterState
     {
         Hunter.ClearSafeZone();
         _safeZone = null;
-        _insideSafeZone = false;
     }
 }
 

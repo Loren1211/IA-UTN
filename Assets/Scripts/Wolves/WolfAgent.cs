@@ -31,6 +31,7 @@ public class WolfAgent : MonoBehaviour
     [Header("States")]
     [SerializeField] private float _alertDuration = 0.8f;
     [SerializeField] private float _searchDuration = 4f;
+    [SerializeField] private float _howlDuration = 0.7f;
 
     [Header("References")]
     [SerializeField] private WolfPack _pack;
@@ -46,8 +47,10 @@ public class WolfAgent : MonoBehaviour
     private Vector3 _lastKnownPosition;
     private bool _hasLastKnown;
     private bool _started;
+    private bool _raisingAlert;
     private int _waypointIndex;
     private float _nextAlertTime;
+    private float _howlUntil;
 
     public float PatrolSpeed => _patrolSpeed;
     public float ChaseSpeed => _chaseSpeed;
@@ -67,6 +70,7 @@ public class WolfAgent : MonoBehaviour
     public Transform CurrentTarget => _hunter;
     public bool HasLastKnown => _hasLastKnown;
     public Vector3 LastKnownPosition => _lastKnownPosition;
+    public bool IsHunting => CurrentState != WolfStateId.Patrol;
 
     private void Awake()
     {
@@ -84,6 +88,7 @@ public class WolfAgent : MonoBehaviour
         if (_captureRadius <= 0f) _captureRadius = 1.3f;
         if (_alertDuration <= 0f) _alertDuration = 0.8f;
         if (_searchDuration <= 0f) _searchDuration = 4f;
+        if (_howlDuration <= 0f) _howlDuration = 0.7f;
 
         _fsm.AddState(WolfStateId.Patrol, new WolfPatrolState(_fsm, this));
         _fsm.AddState(WolfStateId.Alert, new WolfAlertState(_fsm, this));
@@ -118,6 +123,12 @@ public class WolfAgent : MonoBehaviour
     private void Update()
     {
         _fsm.Update();
+
+        if (_howlUntil > 0f && Time.time >= _howlUntil)
+        {
+            _howlUntil = 0f;
+            if (_visual != null) _visual.SetHowling(false);
+        }
     }
 
     private void OnStateChanged(WolfStateId state)
@@ -133,6 +144,8 @@ public class WolfAgent : MonoBehaviour
 
         _lastKnownPosition = position;
         _hasLastKnown = true;
+
+        if (_raisingAlert) return;
 
         if (_fsm.CurrentState == WolfStateId.Patrol || _fsm.CurrentState == WolfStateId.Search)
             _fsm.ChangeState(WolfStateId.Alert);
@@ -182,7 +195,13 @@ public class WolfAgent : MonoBehaviour
         if (_pack == null || Time.time < _nextAlertTime) return;
 
         _nextAlertTime = Time.time + 1f;
+
+        _raisingAlert = true;
         _pack.RaiseAlert(position);
+        _raisingAlert = false;
+
+        _howlUntil = Time.time + _howlDuration;
+        if (_visual != null) _visual.SetHowling(true);
     }
 
     public void RememberPosition(Vector3 position)

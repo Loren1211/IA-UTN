@@ -16,6 +16,19 @@ public class WolfPack : MonoBehaviour
 
     public Vector3? LastKnownHunterPosition { get; private set; }
 
+    public bool IsHunting
+    {
+        get
+        {
+            foreach (WolfAgent wolf in _agents)
+            {
+                if (wolf != null && wolf.IsHunting) return true;
+            }
+
+            return false;
+        }
+    }
+
     private void Awake()
     {
         _agents.Clear();

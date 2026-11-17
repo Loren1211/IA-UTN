@@ -15,7 +15,7 @@ public abstract class WolfState : State<WolfStateId>
         if (!Wolf.UpdateDetection()) return false;
 
         Wolf.ReportDetection(Wolf.CurrentTarget.position);
-        _fsm.ChangeState(WolfStateId.Alert);
+        _fsm.ChangeState(WolfStateId.Chase);
         return true;
     }
 }
@@ -66,17 +66,19 @@ public class WolfAlertState : WolfState
     public override void Enter()
     {
         _timer = 0f;
-        Wolf.Stop();
-        Wolf.SetAction("Howling");
-
-        if (Wolf.HasLastKnown) Wolf.FaceTowards(Wolf.LastKnownPosition);
+        Wolf.SetAction("Responding to howl");
     }
 
     public override void Update()
     {
         _timer += Time.deltaTime;
 
-        if (Wolf.UpdateDetection()) Wolf.ReportDetection(Wolf.CurrentTarget.position);
+        if (Wolf.UpdateDetection())
+        {
+            Wolf.ReportDetection(Wolf.CurrentTarget.position);
+            _fsm.ChangeState(WolfStateId.Chase);
+            return;
+        }
 
         if (Wolf.TargetInSafeZone())
         {
@@ -84,7 +86,14 @@ public class WolfAlertState : WolfState
             return;
         }
 
-        if (Wolf.HasLastKnown) Wolf.FaceTowards(Wolf.LastKnownPosition);
+        if (!Wolf.HasLastKnown)
+        {
+            _fsm.ChangeState(WolfStateId.Patrol);
+            return;
+        }
+
+        if (!Wolf.NavAgent.IsMoving && !Wolf.NavigateTo(Wolf.LastKnownPosition, Wolf.ChaseSpeed))
+            _fsm.ChangeState(WolfStateId.Patrol);
 
         if (_timer >= Wolf.AlertDuration)
             _fsm.ChangeState(WolfStateId.Chase);
