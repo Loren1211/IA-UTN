@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 5855793}
   - component: {fileID: 5855792}
   m_Layer: 6
-  m_Name: Muro 31_01_5x9
+  m_Name: Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -244,7 +244,7 @@ GameObject:
   - component: {fileID: 9589308}
   - component: {fileID: 9589307}
   m_Layer: 6
-  m_Name: Muro 32_14_3x10
+  m_Name: Wall (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -392,7 +392,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 05
+      value: Boid 05
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -454,7 +454,7 @@ GameObject:
   m_Component:
   - component: {fileID: 37965092}
   m_Layer: 0
-  m_Name: L2 Punto 2
+  m_Name: L2 Point 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -488,7 +488,7 @@ GameObject:
   - component: {fileID: 39266304}
   - component: {fileID: 39266303}
   m_Layer: 6
-  m_Name: Muro 17_20_3x1
+  m_Name: Wall (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 50570008}
   - component: {fileID: 50570007}
   m_Layer: 6
-  m_Name: Muro 26_14_2x1
+  m_Name: Wall (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -709,7 +709,7 @@ GameObject:
   m_Component:
   - component: {fileID: 106510891}
   m_Layer: 0
-  m_Name: Nivel
+  m_Name: Level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -742,7 +742,7 @@ GameObject:
   m_Component:
   - component: {fileID: 112175603}
   m_Layer: 0
-  m_Name: L3 Punto 2
+  m_Name: L3 Point 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -776,7 +776,7 @@ GameObject:
   - component: {fileID: 117073832}
   - component: {fileID: 117073831}
   m_Layer: 6
-  m_Name: Muro 08_03_7x1
+  m_Name: Wall (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -885,7 +885,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 03
+      value: Boid 03
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -948,7 +948,7 @@ GameObject:
   - component: {fileID: 156736526}
   - component: {fileID: 156736527}
   m_Layer: 0
-  m_Name: INICIO
+  m_Name: Start
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -982,7 +982,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a3d958c151579349bb75bc93d6edc46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneMarker
-  _displayName: INICIO
+  _displayName: Start
   _zoneColor: {r: 0.36, g: 0.78, b: 0.48, a: 1}
   _type: 1
   _size: {x: 6, y: 0, z: 8}
@@ -999,7 +999,7 @@ GameObject:
   - component: {fileID: 172756744}
   - component: {fileID: 172756743}
   m_Layer: 6
-  m_Name: Muro 22_03_5x1
+  m_Name: Wall (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1238,7 +1238,7 @@ GameObject:
   - component: {fileID: 322654670}
   - component: {fileID: 322654669}
   m_Layer: 6
-  m_Name: Muro 13_20_2x1
+  m_Name: Wall (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1350,7 +1350,7 @@ GameObject:
   - component: {fileID: 376820135}
   - component: {fileID: 376820134}
   m_Layer: 6
-  m_Name: Muro 08_06_1x4
+  m_Name: Wall (7)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1462,7 +1462,7 @@ GameObject:
   - component: {fileID: 388263116}
   - component: {fileID: 388263115}
   m_Layer: 6
-  m_Name: Muro 23_04_4x7
+  m_Name: Wall (8)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1571,7 +1571,7 @@ GameObject:
   m_Component:
   - component: {fileID: 392076003}
   m_Layer: 0
-  m_Name: L3 Punto 1
+  m_Name: L3 Point 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1602,7 +1602,7 @@ GameObject:
   m_Component:
   - component: {fileID: 439519460}
   m_Layer: 0
-  m_Name: L2 Punto 4
+  m_Name: L2 Point 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1636,7 +1636,7 @@ GameObject:
   - component: {fileID: 501442783}
   - component: {fileID: 501442782}
   m_Layer: 6
-  m_Name: Muro 08_04_5x2
+  m_Name: Wall (9)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1748,7 +1748,7 @@ GameObject:
   - component: {fileID: 530063295}
   - component: {fileID: 530063294}
   m_Layer: 6
-  m_Name: Muro 04_10_1x1
+  m_Name: Wall (10)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1948,7 +1948,7 @@ GameObject:
   - component: {fileID: 535908467}
   - component: {fileID: 535908469}
   m_Layer: 0
-  m_Name: COTO DE CAZA
+  m_Name: Hunting Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1983,7 +1983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a3d958c151579349bb75bc93d6edc46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneMarker
-  _displayName: COTO DE CAZA
+  _displayName: Hunting Ground
   _zoneColor: {r: 0.95, g: 0.68, b: 0.24, a: 1}
   _type: 2
   _size: {x: 20, y: 0, z: 16}
@@ -1998,7 +1998,7 @@ GameObject:
   - component: {fileID: 577544081}
   - component: {fileID: 577544082}
   m_Layer: 0
-  m_Name: SALIDA
+  m_Name: Exit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2032,7 +2032,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a3d958c151579349bb75bc93d6edc46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZoneMarker
-  _displayName: SALIDA
+  _displayName: Exit
   _zoneColor: {r: 0.3, g: 0.54, b: 0.92, a: 1}
   _type: 4
   _size: {x: 6, y: 0, z: 8}
@@ -2049,7 +2049,7 @@ GameObject:
   - component: {fileID: 593093942}
   - component: {fileID: 593093941}
   m_Layer: 6
-  m_Name: Muro 08_13_5x8
+  m_Name: Wall (11)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2158,7 +2158,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 01
+      value: Boid 01
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2255,7 +2255,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 07
+      value: Boid 07
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2320,7 +2320,7 @@ GameObject:
   - component: {fileID: 639437930}
   - component: {fileID: 639437929}
   m_Layer: 6
-  m_Name: Muro 23_14_2x1
+  m_Name: Wall (12)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2432,7 +2432,7 @@ GameObject:
   - component: {fileID: 639461252}
   - component: {fileID: 639461251}
   m_Layer: 6
-  m_Name: Muro 11_09_1x1
+  m_Name: Wall (13)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2541,7 +2541,7 @@ GameObject:
   m_Component:
   - component: {fileID: 666097112}
   m_Layer: 0
-  m_Name: PuntoInicio
+  m_Name: StartPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2575,7 +2575,7 @@ GameObject:
   - component: {fileID: 689308535}
   - component: {fileID: 689308534}
   m_Layer: 6
-  m_Name: Muro 35_10_1x14
+  m_Name: Wall (14)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2687,7 +2687,7 @@ GameObject:
   - component: {fileID: 705960765}
   - component: {fileID: 705960764}
   m_Layer: 6
-  m_Name: Muro 13_07_10x1
+  m_Name: Wall (15)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2796,7 +2796,7 @@ GameObject:
   m_Component:
   - component: {fileID: 724509679}
   m_Layer: 0
-  m_Name: L2 Punto 1
+  m_Name: L2 Point 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2828,7 +2828,7 @@ GameObject:
   - component: {fileID: 784428735}
   - component: {fileID: 784428736}
   m_Layer: 0
-  m_Name: Lobos
+  m_Name: Wolves
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2878,7 +2878,7 @@ GameObject:
   - component: {fileID: 801992399}
   - component: {fileID: 801992398}
   m_Layer: 6
-  m_Name: Muro 01_14_3x10
+  m_Name: Wall (16)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2987,7 +2987,7 @@ GameObject:
   m_Component:
   - component: {fileID: 814201332}
   m_Layer: 0
-  m_Name: Salida
+  m_Name: ExitPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3020,7 +3020,7 @@ GameObject:
   - component: {fileID: 833867167}
   - component: {fileID: 833867168}
   m_Layer: 0
-  m_Name: LogicaCoto
+  m_Name: HuntingGroundLogic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3089,7 +3089,7 @@ GameObject:
   - component: {fileID: 837224410}
   - component: {fileID: 837224409}
   m_Layer: 6
-  m_Name: Muro 23_15_1x6
+  m_Name: Wall (17)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3201,7 +3201,7 @@ GameObject:
   - component: {fileID: 848041756}
   - component: {fileID: 848041755}
   m_Layer: 6
-  m_Name: Muro 17_03_3x1
+  m_Name: Wall (18)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3400,7 +3400,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1444718673232358746, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: m_Name
-      value: Lobo 1
+      value: Wolf 1
       objectReference: {fileID: 0}
     - target: {fileID: 2745858649401747843, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: _pack
@@ -3498,7 +3498,7 @@ GameObject:
   m_Component:
   - component: {fileID: 934622510}
   m_Layer: 0
-  m_Name: Paredes
+  m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3564,7 +3564,7 @@ GameObject:
   - component: {fileID: 945930132}
   - component: {fileID: 945930131}
   m_Layer: 6
-  m_Name: Muro 00_00_36x1
+  m_Name: Wall (19)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3763,7 +3763,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1444718673232358746, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: m_Name
-      value: Lobo 2
+      value: Wolf 2
       objectReference: {fileID: 0}
     - target: {fileID: 2745858649401747843, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: _pack
@@ -3856,7 +3856,7 @@ GameObject:
   - component: {fileID: 1037890201}
   - component: {fileID: 1037890200}
   m_Layer: 6
-  m_Name: Muro 31_13_1x11
+  m_Name: Wall (20)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3968,7 +3968,7 @@ GameObject:
   - component: {fileID: 1066000042}
   - component: {fileID: 1066000041}
   m_Layer: 6
-  m_Name: Muro 00_10_1x14
+  m_Name: Wall (21)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4080,7 +4080,7 @@ GameObject:
   - component: {fileID: 1128799056}
   - component: {fileID: 1128799055}
   m_Layer: 6
-  m_Name: Muro 13_16_10x1
+  m_Name: Wall (22)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4189,7 +4189,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1142247620}
   m_Layer: 0
-  m_Name: L1 Punto 2
+  m_Name: L1 Point 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4223,7 +4223,7 @@ GameObject:
   - component: {fileID: 1144962888}
   - component: {fileID: 1144962887}
   m_Layer: 6
-  m_Name: Muro 24_18_3x3
+  m_Name: Wall (23)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4333,7 +4333,7 @@ GameObject:
   - component: {fileID: 1171790679}
   - component: {fileID: 1171790680}
   m_Layer: 0
-  m_Name: Presas
+  m_Name: Boids
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4409,7 +4409,7 @@ PrefabInstance:
       objectReference: {fileID: 833867168}
     - target: {fileID: 4368999265704981884, guid: e49bcd74ae87bf84b9dc13c1018696db, type: 3}
       propertyPath: m_Name
-      value: Cazador
+      value: Hunter
       objectReference: {fileID: 0}
     - target: {fileID: 4368999265704981884, guid: e49bcd74ae87bf84b9dc13c1018696db, type: 3}
       propertyPath: m_Layer
@@ -4486,7 +4486,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1205665963}
   m_Layer: 0
-  m_Name: L1 Punto 1
+  m_Name: L1 Point 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4517,7 +4517,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1232078008}
   m_Layer: 0
-  m_Name: L4 Punto 1
+  m_Name: L4 Point 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4549,7 +4549,7 @@ GameObject:
   - component: {fileID: 1244065835}
   - component: {fileID: 1244065836}
   m_Layer: 0
-  m_Name: ZONA SEGURA 1
+  m_Name: Safe Zone 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4583,7 +4583,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9486b87949f682a41abe24a5bafe8027, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SafeZone
-  _displayName: ZONA SEGURA 1
+  _displayName: Safe Zone 1
   _zoneColor: {r: 0.67, g: 0.42, b: 0.85, a: 1}
   _type: 3
   _size: {x: 6, y: 0, z: 6}
@@ -4598,7 +4598,7 @@ GameObject:
   - component: {fileID: 1254858607}
   - component: {fileID: 1254858608}
   m_Layer: 0
-  m_Name: ZONA SEGURA 2
+  m_Name: Safe Zone 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4632,7 +4632,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9486b87949f682a41abe24a5bafe8027, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SafeZone
-  _displayName: ZONA SEGURA 2
+  _displayName: Safe Zone 2
   _zoneColor: {r: 0.67, g: 0.42, b: 0.85, a: 1}
   _type: 3
   _size: {x: 6, y: 0, z: 6}
@@ -4646,7 +4646,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1276018367}
   m_Layer: 0
-  m_Name: Grafo
+  m_Name: Graph
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4680,7 +4680,7 @@ GameObject:
   - component: {fileID: 1276202395}
   - component: {fileID: 1276202396}
   m_Layer: 0
-  m_Name: Zonas
+  m_Name: Zones
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4753,7 +4753,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 06
+      value: Boid 06
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4848,7 +4848,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1337882237}
   m_Layer: 0
-  m_Name: Trampas
+  m_Name: Traps
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4879,7 +4879,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1350396231}
   m_Layer: 0
-  m_Name: L4 Punto 4
+  m_Name: L4 Point 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5047,7 +5047,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1478362246}
   m_Layer: 0
-  m_Name: CotoCentro
+  m_Name: HuntingGroundCenter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5081,7 +5081,7 @@ GameObject:
   - component: {fileID: 1484539006}
   - component: {fileID: 1484539005}
   m_Layer: 7
-  m_Name: Piso
+  m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5191,7 +5191,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 08
+      value: Boid 08
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5256,7 +5256,7 @@ GameObject:
   - component: {fileID: 1536791612}
   - component: {fileID: 1536791611}
   m_Layer: 6
-  m_Name: Muro 12_06_1x4
+  m_Name: Wall (24)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5455,7 +5455,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1444718673232358746, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: m_Name
-      value: Lobo 4
+      value: Wolf 4
       objectReference: {fileID: 0}
     - target: {fileID: 2745858649401747843, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: _pack
@@ -5548,7 +5548,7 @@ GameObject:
   - component: {fileID: 1562070357}
   - component: {fileID: 1562070356}
   m_Layer: 6
-  m_Name: Muro 22_20_1x1
+  m_Name: Wall (25)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5657,7 +5657,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 04
+      value: Boid 04
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5719,7 +5719,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1630098031}
   m_Layer: 0
-  m_Name: L2 Punto 3
+  m_Name: L2 Point 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5784,7 +5784,7 @@ GameObject:
   - component: {fileID: 1687970199}
   - component: {fileID: 1687970200}
   m_Layer: 0
-  m_Name: Nodos
+  m_Name: Nodes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5841,7 +5841,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1747868362}
   m_Layer: 0
-  m_Name: L4 Punto 2
+  m_Name: L4 Point 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5872,7 +5872,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1767445720}
   m_Layer: 0
-  m_Name: WayPoints
+  m_Name: Waypoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5907,7 +5907,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1252060110374163620, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_Name
-      value: Presa 02
+      value: Boid 02
       objectReference: {fileID: 0}
     - target: {fileID: 5892133615680209627, guid: d1180ec31d73bc14db22c5b2d323c9d5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5972,7 +5972,7 @@ GameObject:
   - component: {fileID: 1787255050}
   - component: {fileID: 1787255049}
   m_Layer: 6
-  m_Name: Muro 00_01_5x9
+  m_Name: Wall (26)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6084,7 +6084,7 @@ GameObject:
   - component: {fileID: 1844034318}
   - component: {fileID: 1844034317}
   m_Layer: 6
-  m_Name: Muro 04_13_1x11
+  m_Name: Wall (27)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6193,7 +6193,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1444718673232358746, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: m_Name
-      value: Lobo 3
+      value: Wolf 3
       objectReference: {fileID: 0}
     - target: {fileID: 2745858649401747843, guid: 0247af5ab34269f4684f328e23551422, type: 3}
       propertyPath: _pack
@@ -6283,7 +6283,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1874400890}
   m_Layer: 0
-  m_Name: L4 Punto 3
+  m_Name: L4 Point 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6442,7 +6442,7 @@ GameObject:
   - component: {fileID: 1938033797}
   - component: {fileID: 1938033796}
   m_Layer: 6
-  m_Name: Muro 31_10_1x1
+  m_Name: Wall (28)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6610,7 +6610,7 @@ GameObject:
   - component: {fileID: 1965989855}
   - component: {fileID: 1965989854}
   m_Layer: 6
-  m_Name: Muro 09_09_1x1
+  m_Name: Wall (29)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6722,7 +6722,7 @@ GameObject:
   - component: {fileID: 2003048138}
   - component: {fileID: 2003048137}
   m_Layer: 6
-  m_Name: Muro 05_23_26x1
+  m_Name: Wall (30)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6834,7 +6834,7 @@ GameObject:
   - component: {fileID: 2015081497}
   - component: {fileID: 2015081496}
   m_Layer: 6
-  m_Name: Muro 27_15_1x6
+  m_Name: Wall (31)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -127,7 +127,7 @@ GameObject:
   - component: {fileID: 8686090239399724047}
   - component: {fileID: 4744934293985544273}
   m_Layer: 2
-  m_Name: Sensor de Amenaza
+  m_Name: Threat Sensor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

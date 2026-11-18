@@ -328,6 +328,19 @@ public class HunterAgent : MonoBehaviour, IThreatTarget
         if (_status != null) _status.SetAction(label, Mathf.Clamp01(progress));
     }
 
+    public void FlashShot()
+    {
+        if (_visual != null) _visual.FlashShot();
+    }
+
+    public void SpawnRangedProjectile(Boid target)
+    {
+        if (target == null) return;
+
+        HunterProjectile.Spawn(transform.position, target, _rangedDamage);
+        FlashShot();
+    }
+
     public Boid GetClosestVisibleLiveBoid()
     {
         if (_sensor == null) return null;

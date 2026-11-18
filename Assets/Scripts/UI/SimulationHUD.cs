@@ -80,7 +80,7 @@ public class SimulationHUD : MonoBehaviour
         _entitiesByStatus.Clear();
 
         if (_hunter != null)
-            AddEntity(_hunter.GetComponent<EntityStatus>(), true, "Cazador");
+            AddEntity(_hunter.GetComponent<EntityStatus>(), true, "Hunter");
 
         if (_wolfPack != null)
         {
@@ -132,7 +132,7 @@ public class SimulationHUD : MonoBehaviour
         if (Time.time < _nextHowlLog) return;
 
         _nextHowlLog = Time.time + 2f;
-        AddEvent("Aullido: manada alertada");
+        AddEvent("Howl: pack alerted");
     }
 
     private void AddEvent(string text)
@@ -332,11 +332,11 @@ public class SimulationHUD : MonoBehaviour
         {
             for (int i = 0; i < _wolfPack.Agents.Count; i++)
             {
-                if (_wolfPack.Agents[i] == wolf) return $"Lobo {i + 1}";
+                if (_wolfPack.Agents[i] == wolf) return $"Wolf {i + 1}";
             }
         }
 
-        return "Lobo";
+        return "Wolf";
     }
 
     private void DrawEntityLabel(EntityStatus status, string displayName, Vector3 worldPosition,
@@ -452,23 +452,23 @@ public class SimulationHUD : MonoBehaviour
     private void DrawPanel()
     {
         StringBuilder builder = new();
-        builder.AppendLine("CAZADOR");
+        builder.AppendLine("HUNTER");
 
         if (_hunter != null)
         {
-            builder.AppendLine($"Estado: {_hunter.CurrentStateName}");
-            builder.AppendLine($"Recolecciones: {_hunter.Gathers}/{_hunter.RequiredGathers}");
-            builder.AppendLine($"Salidas: {_hunter.Escapes}   Muertes: {_hunter.Deaths}");
+            builder.AppendLine($"State: {_hunter.CurrentStateName}");
+            builder.AppendLine($"Gathers: {_hunter.Gathers}/{_hunter.RequiredGathers}");
+            builder.AppendLine($"Escapes: {_hunter.Escapes}   Deaths: {_hunter.Deaths}");
             builder.AppendLine($"TBA melee: {FormatCooldown(_hunter.MeleeReady, _hunter.TimeUntilMelee)}   " +
-                               $"TBA arco: {FormatCooldown(_hunter.RangedReady, _hunter.TimeUntilRanged)}");
-            builder.AppendLine($"Objetivo: {GetHunterObjective()}");
+                               $"TBA shoot: {FormatCooldown(_hunter.RangedReady, _hunter.TimeUntilRanged)}");
+            builder.AppendLine($"Objective: {GetHunterObjective()}");
             builder.AppendLine($"Wolf threat: {(_hunter.PerceivedWolf != null ? GetWolfLabel(_hunter.PerceivedWolf) : "-")}");
-            builder.AppendLine($"Zona segura elegida: {(_hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-")}");
-            builder.AppendLine($"Acción: {GetHunterAction()}");
+            builder.AppendLine($"Selected safe zone: {(_hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-")}");
+            builder.AppendLine($"Action: {GetHunterAction()}");
         }
 
         builder.AppendLine();
-        builder.AppendLine("LOBOS");
+        builder.AppendLine("WOLVES");
 
         if (_wolfPack != null)
         {
@@ -478,14 +478,14 @@ public class SimulationHUD : MonoBehaviour
 
                 string lastPosition = wolf.HasLastKnown ? FormatPosition(wolf.LastKnownPosition) : "-";
                 builder.AppendLine($"{GetWolfLabel(wolf)}: {wolf.CurrentStateName}");
-                builder.AppendLine($"   últ. pos: {lastPosition}   A*: {FormatPathCount(wolf.NavAgent)}");
+                builder.AppendLine($"   last pos: {lastPosition}   A*: {FormatPathCount(wolf.NavAgent)}");
             }
         }
 
         if (_events.Count > 0)
         {
             builder.AppendLine();
-            builder.AppendLine("EVENTOS");
+            builder.AppendLine("EVENTS");
 
             foreach (string entry in _events) builder.AppendLine(entry);
         }
@@ -510,7 +510,7 @@ public class SimulationHUD : MonoBehaviour
         switch (_hunter.CurrentState)
         {
             case HunterStateId.Search:
-                return "Coto de caza";
+                return "Hunting Ground";
             case HunterStateId.Attack:
                 return _hunter.AttackTarget != null ? _hunter.AttackTarget.name : "-";
             case HunterStateId.Gather:
@@ -518,7 +518,7 @@ public class SimulationHUD : MonoBehaviour
             case HunterStateId.Flee:
                 return _hunter.SelectedSafeZone != null ? _hunter.SelectedSafeZone.DisplayName : "-";
             case HunterStateId.Exit:
-                return "Salida";
+                return "Exit";
             default:
                 return "-";
         }
@@ -543,7 +543,7 @@ public class SimulationHUD : MonoBehaviour
 
     private static string FormatCooldown(bool ready, float remaining)
     {
-        return ready ? "listo" : $"{remaining:0.0}s";
+        return ready ? "ready" : $"{remaining:0.0}s";
     }
 
     private sealed class HudEntity
